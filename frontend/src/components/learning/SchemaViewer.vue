@@ -1,20 +1,15 @@
 <template>
-  <section class="card schema-viewer">
-    <div class="card-header">
-      <h2 class="card-title">Schema</h2>
-      <p class="card-description">Reference the available tables and column types.</p>
-    </div>
+  <section class="compact-panel">
+    <header class="compact-header">
+      <h2>Schema</h2>
+    </header>
 
-    <div v-if="normalizedTables.length" class="schema-list">
-      <article v-for="table in normalizedTables" :key="table.name" class="schema-table">
-        <h3>{{ table.name }}</h3>
-        <ResultTable
-          :columns="['Column', 'Type']"
-          :rows="table.columns.map((column) => [column.name, column.type])"
-        />
-      </article>
-    </div>
-    <p v-else class="muted">Schema details are not available yet.</p>
+    <ResultTable
+      v-if="schemaRows.length"
+      :columns="['Table', 'Column', 'Type']"
+      :rows="schemaRows"
+    />
+    <p v-else class="muted compact-empty">Schema details are not available.</p>
   </section>
 </template>
 
@@ -34,30 +29,40 @@ const props = defineProps({
   },
 });
 
-const normalizedTables = computed(() =>
-  (props.schema.length ? props.schema : props.tables).map((table) => ({
-    name: table.name || table.table_name,
-    columns: Array.isArray(table.columns)
+const sourceTables = computed(() => (props.schema.length ? props.schema : props.tables));
+
+const schemaRows = computed(() =>
+  sourceTables.value.flatMap((table) => {
+    const tableName = table.table_name || table.name;
+    const columns = Array.isArray(table.columns)
       ? table.columns
-      : Object.entries(table.columns || {}).map(([name, type]) => ({ name, type })),
-  })),
+      : Object.entries(table.columns || {}).map(([name, type]) => ({ name, type }));
+
+    return columns.map((column) => [tableName, column.name, column.type]);
+  }),
 );
 </script>
 
 <style scoped>
-.schema-list {
-  display: grid;
-  gap: var(--space-4);
-}
-
-.schema-table {
+.compact-panel {
   display: grid;
   gap: var(--space-2);
 }
 
-h3 {
+.compact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+h2 {
   margin: 0;
   color: var(--color-text);
-  font-size: 15px;
+  font-size: var(--font-sm);
+}
+
+.compact-empty {
+  margin: 0;
+  font-size: var(--font-sm);
 }
 </style>

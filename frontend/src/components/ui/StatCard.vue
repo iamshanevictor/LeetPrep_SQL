@@ -26,7 +26,7 @@ defineProps({
 <style scoped>
 .stat-card {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
 .stat-label,
@@ -37,20 +37,21 @@ defineProps({
 
 .stat-label {
   color: var(--color-muted);
-  font-size: 13px;
-  font-weight: 900;
+  font-size: var(--font-xs);
+  font-weight: 800;
   text-transform: uppercase;
 }
 
 .stat-value {
   color: var(--color-text);
-  font-size: 32px;
-  font-weight: 900;
+  font-size: 20px;
+  font-weight: 850;
   letter-spacing: 0;
 }
 
 .stat-helper {
   color: var(--color-muted);
+  font-size: var(--font-xs);
   line-height: 1.45;
 }
 </style>

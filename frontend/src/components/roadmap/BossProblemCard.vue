@@ -1,12 +1,12 @@
 <template>
-  <article class="boss-card">
-    <div class="boss-copy">
-      <p class="boss-label">Boss Problem</p>
+  <article class="boss-row">
+    <div class="boss-main">
+      <span class="badge badge-medium">Boss Problem</span>
       <h2>{{ bossProblem?.title || module?.boss_problem_title || "Final Challenge" }}</h2>
       <p>
         {{
           bossProblem
-            ? "Use the concepts from this module to solve the final target-style problem."
+            ? "Final target-style challenge for this module."
             : "Boss problem content will be added later."
         }}
       </p>
@@ -17,9 +17,9 @@
       class="button button-primary"
       :to="`/roadmap/${moduleId || bossProblem.module_id}/boss`"
     >
-      Start Boss Problem
+      Start Boss
     </RouterLink>
-    <span v-else class="badge">Locked Placeholder</span>
+    <span v-else class="badge">Locked</span>
   </article>
 </template>
 
@@ -41,48 +41,39 @@ defineProps({
 </script>
 
 <style scoped>
-.boss-card {
+.boss-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-5);
-  border: 1px solid #f2c078;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, #fffaf0, #ffffff);
-  box-shadow: var(--shadow-card);
-  padding: var(--space-5);
+  gap: var(--space-3);
+  border: 1px solid #f1bf76;
+  border-radius: var(--radius-md);
+  background: var(--color-warning-soft);
+  padding: var(--space-3);
 }
 
-.boss-copy {
+.boss-main {
   display: grid;
-  gap: var(--space-2);
+  gap: 4px;
 }
 
-.boss-label,
 h2,
 p {
   margin: 0;
 }
 
-.boss-label {
-  color: var(--color-warning);
-  font-size: 13px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
 h2 {
   color: var(--color-text);
-  font-size: 22px;
+  font-size: var(--font-md);
 }
 
 p {
-  color: var(--color-muted);
-  line-height: 1.55;
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
 }
 
 @media (max-width: 680px) {
-  .boss-card {
+  .boss-row {
     align-items: flex-start;
     flex-direction: column;
   }

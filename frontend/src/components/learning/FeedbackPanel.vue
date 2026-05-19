@@ -44,7 +44,7 @@ const statusLabel = computed(() => {
     success: "Correct",
     incorrect: "Not quite",
     error: "Query error",
-    warning: "Check your result",
+    warning: "Check result",
   };
   return labels[currentStatus.value] || "Feedback";
 });
@@ -53,12 +53,11 @@ const statusLabel = computed(() => {
 <style scoped>
 .feedback-panel {
   display: grid;
-  gap: var(--space-2);
+  gap: 3px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--color-surface);
-  box-shadow: var(--shadow-card);
-  padding: var(--space-4);
+  padding: var(--space-2);
 }
 
 strong,
@@ -66,9 +65,14 @@ p {
   margin: 0;
 }
 
+strong {
+  font-size: var(--font-sm);
+}
+
 p {
-  color: var(--color-muted);
-  line-height: 1.5;
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  line-height: 1.35;
 }
 
 .is-success {
@@ -102,11 +106,11 @@ p {
 
 .error-detail {
   overflow-x: auto;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: #3b1111;
   color: #ffe4e4;
-  margin: var(--space-2) 0 0;
-  padding: var(--space-3);
+  margin: var(--space-1) 0 0;
+  padding: var(--space-2);
   white-space: pre-wrap;
 }
 </style>

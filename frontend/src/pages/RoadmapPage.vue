@@ -1,19 +1,54 @@
 <template>
-  <section class="page">
+  <section class="page roadmap-page">
     <PageHeader
-      eyebrow="Learning path"
       title="SQL Learning Roadmap"
       :subtitle="roadmap?.description || 'Build SQL skills one pattern at a time.'"
     />
 
     <LoadingState v-if="isLoading" message="Loading roadmap..." />
     <ErrorState v-else-if="errorMessage" title="Could not load roadmap" :message="errorMessage" />
-    <div v-else-if="modules.length" class="roadmap-grid">
-      <RoadmapModuleCard
-        v-for="module in modules"
-        :key="module.id"
-        :module="module"
-      />
+    <div v-else-if="modules.length" class="roadmap-layout">
+      <aside class="card side-list">
+        <h2>Modules</h2>
+        <RouterLink
+          v-for="module in modules"
+          :key="module.id"
+          class="side-link"
+          :to="`/roadmap/${module.id}`"
+        >
+          <span>{{ String(module.order).padStart(2, "0") }}</span>
+          <strong>{{ module.title }}</strong>
+        </RouterLink>
+      </aside>
+
+      <main class="roadmap-list">
+        <RoadmapModuleCard
+          v-for="module in modules"
+          :key="module.id"
+          :module="module"
+        />
+      </main>
+
+      <aside class="card summary-panel">
+        <h2>Summary</h2>
+        <dl>
+          <div>
+            <dt>Modules</dt>
+            <dd>{{ modules.length }}</dd>
+          </div>
+          <div>
+            <dt>Lessons ready</dt>
+            <dd>{{ lessonCount }}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>Foundation</dd>
+          </div>
+        </dl>
+        <p>
+          Start with Module 1, then add future lesson JSON under each planned module.
+        </p>
+      </aside>
     </div>
     <EmptyState
       v-else
@@ -38,6 +73,9 @@ const isLoading = ref(true);
 const errorMessage = ref("");
 
 const modules = computed(() => roadmap.value?.modules || []);
+const lessonCount = computed(() =>
+  modules.value.reduce((total, module) => total + (module.lessons_count || 0), 0),
+);
 
 onMounted(async () => {
   try {
@@ -51,9 +89,86 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.roadmap-grid {
+.roadmap-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--space-4);
+  grid-template-columns: 220px minmax(0, 1fr) 230px;
+  gap: var(--space-2);
+  align-items: start;
+}
+
+.side-list,
+.summary-panel {
+  position: sticky;
+  top: 57px;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.side-list h2,
+.summary-panel h2 {
+  margin: 0;
+  font-size: var(--font-md);
+}
+
+.side-link {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: var(--space-1);
+  align-items: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+}
+
+.side-link strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-link.router-link-active {
+  color: var(--color-primary);
+}
+
+.roadmap-list {
+  display: grid;
+  gap: var(--space-2);
+}
+
+dl {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-1);
+}
+
+dt,
+dd,
+.summary-panel p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+}
+
+dd {
+  color: var(--color-text);
+  font-weight: 800;
+}
+
+@media (max-width: 1080px) {
+  .roadmap-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .side-list,
+  .summary-panel {
+    position: static;
+  }
 }
 </style>

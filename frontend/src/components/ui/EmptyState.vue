@@ -39,7 +39,7 @@ p {
 
 h2 {
   color: var(--color-text);
-  font-size: 18px;
+  font-size: var(--font-md);
   margin-bottom: var(--space-2);
 }
 

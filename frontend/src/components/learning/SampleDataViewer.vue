@@ -1,17 +1,17 @@
 <template>
-  <section class="card sample-viewer">
-    <div class="card-header">
-      <h2 class="card-title">Sample Data</h2>
-      <p class="card-description">These rows are loaded into DuckDB for this exercise.</p>
-    </div>
+  <section class="compact-panel">
+    <header class="compact-header">
+      <h2>Sample data</h2>
+      <span v-if="tables.length" class="badge">{{ tables.length }} tables</span>
+    </header>
 
     <div v-if="tables.length" class="sample-list">
       <article v-for="table in tables" :key="table.name" class="sample-table">
-        <h3>{{ table.name }} table</h3>
+        <h3>{{ table.name }}</h3>
         <ResultTable :columns="table.columns" :rows="table.rows" />
       </article>
     </div>
-    <p v-else class="muted">Sample rows are not available yet.</p>
+    <p v-else class="muted compact-empty">Sample rows are not available.</p>
   </section>
 </template>
 
@@ -29,6 +29,10 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  maxRows: {
+    type: Number,
+    default: 6,
+  },
 });
 
 const tables = computed(() =>
@@ -38,7 +42,7 @@ const tables = computed(() =>
       return {
         name,
         columns: Object.keys(table.columns || {}),
-        rows: props.seedData[name] || [],
+        rows: (props.seedData[name] || []).slice(0, props.maxRows),
       };
     })
     .filter((table) => table.rows.length),
@@ -46,19 +50,35 @@ const tables = computed(() =>
 </script>
 
 <style scoped>
+.compact-panel,
 .sample-list,
 .sample-table {
   display: grid;
-  gap: var(--space-4);
-}
-
-.sample-table {
   gap: var(--space-2);
 }
 
+.compact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+h2,
 h3 {
   margin: 0;
   color: var(--color-text);
-  font-size: 15px;
+  font-size: var(--font-sm);
+}
+
+h3 {
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+  text-transform: uppercase;
+}
+
+.compact-empty {
+  margin: 0;
+  font-size: var(--font-sm);
 }
 </style>

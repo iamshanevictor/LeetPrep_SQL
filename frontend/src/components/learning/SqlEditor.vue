@@ -5,10 +5,11 @@
       :value="modelValue"
       :placeholder="placeholder"
       :disabled="disabled"
-      rows="12"
+      rows="9"
       aria-label="SQL query editor"
       @input="$emit('update:modelValue', $event.target.value)"
     />
+    <small>Only SELECT and WITH queries are allowed.</small>
   </label>
 </template>
 
@@ -20,7 +21,7 @@ defineProps({
   },
   label: {
     type: String,
-    default: "Write your SQL",
+    default: "SQL editor",
   },
   placeholder: {
     type: String,
@@ -38,29 +39,34 @@ defineEmits(["update:modelValue"]);
 <style scoped>
 .sql-editor {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: var(--space-2);
-  height: 100%;
+  gap: var(--space-1);
+  min-height: 0;
   color: var(--color-text);
-  font-weight: 900;
+  font-size: var(--font-sm);
+  font-weight: 800;
 }
 
 textarea {
   width: 100%;
-  height: 100%;
-  min-height: 260px;
+  min-height: 190px;
   resize: vertical;
-  border: 1px solid #253044;
-  border-radius: var(--radius-md);
-  background: #111827;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: #101827;
   color: #f8fafc;
   font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
-  font-size: 14px;
-  line-height: 1.55;
-  padding: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: var(--space-2);
 }
 
 textarea:disabled {
   opacity: 0.7;
+}
+
+small {
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+  font-weight: 600;
 }
 </style>

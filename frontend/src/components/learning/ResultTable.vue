@@ -36,7 +36,7 @@ const props = defineProps({
   },
   emptyMessage: {
     type: String,
-    default: "No rows to display yet.",
+    default: "No rows yet.",
   },
 });
 
@@ -54,38 +54,43 @@ function readCell(row, column, columnIndex) {
 
 <style scoped>
 .result-table {
+  max-height: 220px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--color-surface);
-  font-size: 14px;
+  font-size: var(--font-xs);
 }
 
 th,
 td {
   border-bottom: 1px solid var(--color-border);
-  padding: 10px 12px;
+  padding: 6px 8px;
   text-align: left;
   white-space: nowrap;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font-weight: 800;
 }
 
 tr:last-child td {
   border-bottom: 0;
 }
 
-th {
-  background: var(--color-surface-soft);
-  color: var(--color-text);
-  font-weight: 900;
-}
-
 .empty-result {
   margin: 0;
-  color: var(--color-muted);
-  padding: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  padding: var(--space-3);
 }
 </style>

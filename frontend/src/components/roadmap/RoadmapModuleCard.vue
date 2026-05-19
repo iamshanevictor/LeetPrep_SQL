@@ -1,41 +1,38 @@
 <template>
-  <article class="card module-card">
-    <div class="module-topline">
-      <span class="module-number">Module {{ module.order }}</span>
-      <span class="badge">{{ status }}</span>
-    </div>
+  <RouterLink class="module-row" :to="`/roadmap/${module.id}`">
+    <span class="module-number">{{ String(module.order).padStart(2, "0") }}</span>
 
-    <div class="module-heading">
-      <h2>{{ module.title }}</h2>
-      <DifficultyBadge :difficulty="module.difficulty" />
-    </div>
-
-    <p class="module-goal">{{ module.goal }}</p>
-
-    <div class="concept-list" aria-label="Concepts covered">
-      <ConceptBadge
-        v-for="concept in module.concepts || []"
-        :key="concept"
-        :concept="concept"
-      />
+    <div class="module-main">
+      <div class="module-title-line">
+        <h2>{{ module.title }}</h2>
+        <DifficultyBadge :difficulty="module.difficulty" />
+        <span class="badge">{{ status }}</span>
+      </div>
+      <p>{{ module.goal }}</p>
+      <div class="concept-list">
+        <ConceptBadge
+          v-for="concept in visibleConcepts"
+          :key="concept"
+          :concept="concept"
+        />
+        <span v-if="hiddenConceptCount" class="badge">+{{ hiddenConceptCount }}</span>
+      </div>
     </div>
 
     <div class="module-meta">
       <span>{{ module.lessons_count || 0 }} lessons</span>
-      <span>{{ module.boss_problem_title || "Boss problem" }}</span>
+      <span>Boss</span>
     </div>
-
-    <RouterLink class="button button-primary" :to="`/roadmap/${module.id}`">
-      Open Module
-    </RouterLink>
-  </article>
+  </RouterLink>
 </template>
 
 <script setup>
+import { computed } from "vue";
+
 import ConceptBadge from "../ui/ConceptBadge.vue";
 import DifficultyBadge from "../ui/DifficultyBadge.vue";
 
-defineProps({
+const props = defineProps({
   module: {
     type: Object,
     required: true,
@@ -45,32 +42,53 @@ defineProps({
     default: "Not Started",
   },
 });
+
+const visibleConcepts = computed(() => (props.module.concepts || []).slice(0, 4));
+const hiddenConceptCount = computed(() =>
+  Math.max((props.module.concepts || []).length - visibleConcepts.value.length, 0),
+);
 </script>
 
 <style scoped>
-.module-card {
+.module-row {
   display: grid;
-  gap: var(--space-4);
+  grid-template-columns: 42px minmax(0, 1fr) 96px;
+  gap: var(--space-3);
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-2) var(--space-3);
 }
 
-.module-topline,
-.module-heading,
-.module-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
+.module-row:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-muted);
 }
 
 .module-number {
   color: var(--color-primary);
-  font-size: 13px;
-  font-weight: 900;
-  text-transform: uppercase;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: var(--font-sm);
+  font-weight: 850;
 }
 
-.module-heading {
-  align-items: flex-start;
+.module-main {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.module-title-line,
+.concept-list,
+.module-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.module-title-line {
+  flex-wrap: wrap;
 }
 
 h2,
@@ -80,35 +98,39 @@ p {
 
 h2 {
   color: var(--color-text);
-  font-size: 22px;
+  font-size: var(--font-md);
   line-height: 1.25;
 }
 
-.module-goal {
-  color: var(--color-muted);
-  line-height: 1.55;
+p {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .concept-list {
-  display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
 }
 
 .module-meta {
-  align-items: flex-start;
-  border-top: 1px solid var(--color-border);
-  color: var(--color-muted);
-  font-size: 13px;
-  font-weight: 800;
-  padding-top: var(--space-3);
+  align-items: flex-end;
+  flex-direction: column;
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+  font-weight: 750;
 }
 
-@media (max-width: 520px) {
-  .module-heading,
+@media (max-width: 720px) {
+  .module-row {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+
   .module-meta {
     align-items: flex-start;
-    flex-direction: column;
+    grid-column: 2;
   }
 }
 </style>

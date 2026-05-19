@@ -1,5 +1,5 @@
 <template>
-  <section class="leetcode-workspace">
+  <section class="workspace-page">
     <LoadingState v-if="isLoading" class="workspace-state" message="Loading lesson..." />
     <ErrorState
       v-else-if="errorMessage"
@@ -8,94 +8,111 @@
       :message="errorMessage"
     />
 
-    <div v-else class="workspace-grid">
-      <aside class="description-pane">
-        <div class="pane-toolbar">
-          <RouterLink class="back-link-dark" :to="`/roadmap/${route.params.moduleId}`">
-            Back to Module
-          </RouterLink>
-          <span>{{ lesson.title }}</span>
+    <div v-else class="dense-workspace">
+      <header class="workspace-topbar">
+        <div class="crumbs">
+          <RouterLink :to="`/roadmap/${route.params.moduleId}`">Module</RouterLink>
+          <span>/</span>
+          <strong>{{ lesson.title }}</strong>
         </div>
-        <LeetCodeDescription
-          label="Lesson"
-          :title="lesson.title"
-          :concepts="lesson.concepts"
-          :prompt="lesson.practice.prompt"
-          :schema="lesson.schema"
-          :seed-data="lesson.seed_data"
-          :expected-result="lesson.expected_result"
-          :order-matters="lesson.practice.order_matters"
-          :tutorial="lesson.tutorial"
-          :guided-example="lesson.guided_example"
-          :hints="lesson.hints"
-        />
-      </aside>
+        <div class="topbar-actions">
+          <RouterLink class="button button-secondary" to="/roadmap">Roadmap</RouterLink>
+          <RouterLink class="button button-secondary" :to="`/roadmap/${route.params.moduleId}/boss`">
+            Boss
+          </RouterLink>
+        </div>
+      </header>
 
-      <main class="code-pane">
-        <header class="run-toolbar">
-          <div class="toolbar-title">
-            <span class="code-icon">SQL</span>
-            <strong>Code</strong>
-          </div>
-          <div class="toolbar-actions">
-            <button
-              class="run-button"
-              type="button"
-              :disabled="isRunning || isSubmitting"
-              @click="runQuery"
-            >
-              {{ isRunning ? "Running..." : "Run" }}
-            </button>
-            <button
-              class="submit-button"
-              type="button"
-              :disabled="isRunning || isSubmitting"
-              @click="submitQuery"
-            >
-              {{ isSubmitting ? "Submitting..." : "Submit" }}
-            </button>
-          </div>
-        </header>
-
-        <section class="editor-panel">
-          <div class="editor-meta">
-            <span>DuckDB SQL</span>
-            <span>Auto</span>
-          </div>
-          <SqlEditor
-            v-model="query"
-            label=""
-            :disabled="isRunning || isSubmitting"
-            placeholder="-- Write your SQL query below&#10;SELECT ...&#10;FROM ...;"
-          />
-        </section>
-
-        <section class="result-panel">
-          <div class="result-tabs">
-            <span class="tab active">Test Result</span>
-            <span class="tab">Expected Output</span>
-          </div>
-
-          <div class="result-body">
-            <FeedbackPanel :feedback="feedback" />
-
-            <div class="result-grid">
-              <section class="result-card">
-                <h2>Your Result</h2>
-                <ResultTable
-                  :result="userResult"
-                  empty-message="You must run your query first."
-                />
-              </section>
-
-              <section v-if="expectedResult" class="result-card">
-                <h2>Expected Result</h2>
-                <ResultTable :result="expectedResult" />
-              </section>
+      <div class="workspace-columns lesson-columns">
+        <aside class="workspace-panel left-panel">
+          <section class="panel-section">
+            <p class="page-eyebrow">Lesson</p>
+            <h1>{{ lesson.title }}</h1>
+            <p>{{ lesson.learning_objective }}</p>
+            <div class="concept-list">
+              <ConceptBadge
+                v-for="concept in lesson.concepts"
+                :key="concept"
+                :concept="concept"
+              />
             </div>
-          </div>
-        </section>
-      </main>
+          </section>
+
+          <section class="panel-section">
+            <TutorialPanel :tutorial="lesson.tutorial" />
+          </section>
+
+          <section class="panel-section">
+            <GuidedExamplePanel :guided-example="lesson.guided_example" />
+          </section>
+        </aside>
+
+        <main class="workspace-panel center-panel">
+          <section class="practice-strip">
+            <div>
+              <h2>Practice</h2>
+              <p>{{ lesson.practice.prompt }}</p>
+            </div>
+            <span class="badge">{{ lesson.practice.order_matters ? "Ordered" : "Any order" }}</span>
+          </section>
+
+          <section class="editor-section">
+            <SqlEditor v-model="query" :disabled="isRunning || isSubmitting" />
+            <div class="actions">
+              <button
+                class="button button-secondary"
+                type="button"
+                :disabled="isRunning || isSubmitting"
+                @click="runQuery"
+              >
+                {{ isRunning ? "Running..." : "Run Query" }}
+              </button>
+              <button
+                class="button button-primary"
+                type="button"
+                :disabled="isRunning || isSubmitting"
+                @click="submitQuery"
+              >
+                {{ isSubmitting ? "Submitting..." : "Submit Answer" }}
+              </button>
+            </div>
+          </section>
+
+          <FeedbackPanel :feedback="feedback" />
+
+          <section class="result-section">
+            <div class="result-header">
+              <h2>Your result</h2>
+              <span class="badge">DuckDB</span>
+            </div>
+            <ResultTable :result="userResult" empty-message="Run your query to see results." />
+          </section>
+
+          <section v-if="expectedResult" class="result-section">
+            <div class="result-header">
+              <h2>Expected result</h2>
+            </div>
+            <ResultTable :result="expectedResult" />
+          </section>
+        </main>
+
+        <aside class="workspace-panel right-panel">
+          <SchemaViewer :schema="lesson.schema" />
+          <SampleDataViewer :schema="lesson.schema" :seed-data="lesson.seed_data" />
+
+          <section class="panel-section">
+            <div class="result-header">
+              <h2>Expected output</h2>
+            </div>
+            <ResultTable
+              :result="lesson.expected_result"
+              empty-message="Expected output is not available."
+            />
+          </section>
+
+          <HintPanel :hints="lesson.hints" />
+        </aside>
+      </div>
     </div>
   </section>
 </template>
@@ -106,9 +123,14 @@ import { useRoute } from "vue-router";
 
 import { fetchLesson, runLessonQuery, submitLessonQuery } from "../api/roadmap";
 import FeedbackPanel from "../components/learning/FeedbackPanel.vue";
-import LeetCodeDescription from "../components/learning/LeetCodeDescription.vue";
+import GuidedExamplePanel from "../components/learning/GuidedExamplePanel.vue";
+import HintPanel from "../components/learning/HintPanel.vue";
 import ResultTable from "../components/learning/ResultTable.vue";
+import SampleDataViewer from "../components/learning/SampleDataViewer.vue";
+import SchemaViewer from "../components/learning/SchemaViewer.vue";
 import SqlEditor from "../components/learning/SqlEditor.vue";
+import TutorialPanel from "../components/learning/TutorialPanel.vue";
+import ConceptBadge from "../components/ui/ConceptBadge.vue";
 import ErrorState from "../components/ui/ErrorState.vue";
 import LoadingState from "../components/ui/LoadingState.vue";
 
@@ -192,239 +214,161 @@ async function submitQuery() {
 </script>
 
 <style scoped>
-.leetcode-workspace {
+.workspace-page {
   height: 100%;
   min-height: 0;
-  background: #111111;
-  color: #f2f2f2;
-  padding: 8px;
+  padding: var(--space-2);
 }
 
 .workspace-state {
-  margin: 24px;
+  margin: var(--space-3);
 }
 
-.workspace-grid {
+.dense-workspace {
   display: grid;
-  grid-template-columns: minmax(380px, 1fr) minmax(420px, 1fr);
-  gap: 8px;
+  grid-template-rows: 38px minmax(0, 1fr);
+  gap: var(--space-2);
   height: 100%;
   min-height: 0;
 }
 
-.description-pane,
-.code-pane {
-  min-height: 0;
-  overflow: hidden;
+.workspace-topbar,
+.workspace-panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
 }
 
-.description-pane {
-  display: grid;
-  grid-template-rows: 34px minmax(0, 1fr);
-  gap: 8px;
-}
-
-.pane-toolbar {
+.workspace-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  border-radius: 8px;
-  background: #1f1f1f;
-  color: #bdbdbd;
-  font-size: 13px;
-  font-weight: 700;
-  padding: 0 12px;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
 }
 
-.back-link-dark {
-  color: #8ebeff;
-}
-
-.code-pane {
-  display: grid;
-  grid-template-rows: 44px minmax(230px, 1fr) minmax(230px, 0.9fr);
-  gap: 8px;
-}
-
-.run-toolbar,
-.editor-panel,
-.result-panel {
-  border-radius: 8px;
-  background: #242424;
-}
-
-.run-toolbar {
+.crumbs,
+.topbar-actions,
+.concept-list,
+.result-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0 12px;
+  flex-wrap: wrap;
+  gap: var(--space-1);
 }
 
-.toolbar-title,
-.toolbar-actions,
-.editor-meta,
-.result-tabs {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.crumbs {
+  min-width: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
 }
 
-.code-icon {
-  color: #2ecc71;
-  font-weight: 900;
+.crumbs a {
+  color: var(--color-primary);
 }
 
-.toolbar-actions button {
-  border: 0;
-  border-radius: 7px;
-  cursor: pointer;
-  font-weight: 900;
-  padding: 8px 16px;
-}
-
-.toolbar-actions button:disabled {
-  cursor: not-allowed;
-  opacity: 0.62;
-}
-
-.run-button {
-  background: #343434;
-  color: #e8e8e8;
-}
-
-.submit-button {
-  background: #1db954;
-  color: #06210f;
-}
-
-.editor-panel {
-  display: grid;
-  grid-template-rows: 34px minmax(0, 1fr);
-  min-height: 0;
+.crumbs strong {
   overflow: hidden;
+  color: var(--color-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.editor-meta {
-  border-bottom: 1px solid #333333;
-  color: #bdbdbd;
-  font-size: 13px;
-  padding: 0 12px;
-}
-
-.editor-panel :deep(.sql-editor) {
-  min-height: 0;
-}
-
-.editor-panel :deep(textarea) {
-  min-height: 0;
-  border: 0;
-  border-radius: 0;
-  background: #242424;
-  color: #f2f2f2;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.result-panel {
+.workspace-columns {
   display: grid;
-  grid-template-rows: 36px minmax(0, 1fr);
+  grid-template-columns: minmax(260px, 30%) minmax(360px, 42%) minmax(260px, 28%);
+  gap: var(--space-2);
   min-height: 0;
-  overflow: hidden;
 }
 
-.result-tabs {
-  border-bottom: 1px solid #333333;
-  padding: 0 12px;
-}
-
-.tab {
-  color: #a7a7a7;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.tab.active {
-  color: #ffffff;
-}
-
-.result-body {
+.workspace-panel {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 10px;
+  align-content: start;
+  gap: var(--space-2);
   min-height: 0;
   overflow-y: auto;
-  padding: 12px;
+  padding: var(--space-3);
 }
 
-.result-grid {
+.panel-section,
+.editor-section,
+.result-section,
+.practice-strip {
   display: grid;
-  gap: 10px;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-2);
 }
 
-.result-card {
-  display: grid;
-  gap: 10px;
+.panel-section:last-child,
+.result-section:last-child {
+  border-bottom: 0;
 }
 
-.result-card h2 {
+h1,
+h2,
+p {
   margin: 0;
-  color: #ffffff;
-  font-size: 14px;
 }
 
-.result-panel :deep(.feedback-panel) {
-  box-shadow: none;
+h1 {
+  color: var(--color-text);
+  font-size: 19px;
+  line-height: 1.25;
 }
 
-.result-panel :deep(.result-table) {
-  border-color: #3f3f3f;
+h2 {
+  color: var(--color-text);
+  font-size: var(--font-md);
 }
 
-.result-panel :deep(table) {
-  background: #242424;
-  color: #dedede;
+p {
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  line-height: 1.45;
 }
 
-.result-panel :deep(th) {
-  background: #303030;
-  color: #ffffff;
+.practice-strip {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
 }
 
-.result-panel :deep(th),
-.result-panel :deep(td) {
-  border-color: #3f3f3f;
+.result-header {
+  justify-content: space-between;
 }
 
-.result-panel :deep(.empty-result) {
-  color: #8c8c8c;
-  text-align: center;
-  padding: 54px 16px;
+.center-panel :deep(.result-table) {
+  max-height: 180px;
 }
 
-@media (max-width: 900px) {
-  .workspace-container {
-    height: auto;
-    overflow: visible;
+@media (max-width: 1100px) {
+  .workspace-columns {
+    grid-template-columns: minmax(260px, 34%) minmax(360px, 66%);
   }
 
-  .leetcode-workspace {
+  .right-panel {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace-page {
     height: auto;
-    min-height: 100vh;
   }
 
-  .workspace-grid {
+  .dense-workspace,
+  .workspace-columns {
+    height: auto;
+  }
+
+  .workspace-columns,
+  .right-panel {
     grid-template-columns: 1fr;
-    height: auto;
   }
 
-  .description-pane {
-    min-height: 620px;
-  }
-
-  .code-pane {
-    min-height: 760px;
+  .workspace-panel {
+    overflow: visible;
   }
 }
 </style>

@@ -1,15 +1,16 @@
 <template>
-  <article class="card lesson-card">
-    <div class="lesson-index">{{ index + 1 }}</div>
-    <div class="lesson-body">
-      <div class="lesson-heading">
-        <div>
-          <h2>{{ lesson.title }}</h2>
-          <p>{{ lesson.learning_objective }}</p>
-        </div>
+  <RouterLink
+    class="lesson-row"
+    :to="`/roadmap/${lesson.module_id}/lessons/${lesson.id}`"
+  >
+    <span class="lesson-index">{{ index + 1 }}</span>
+    <div class="lesson-main">
+      <div class="lesson-title-line">
+        <h3>{{ lesson.title }}</h3>
+        <span class="badge">{{ lesson.estimated_minutes || 10 }} min</span>
         <span class="badge">Not Started</span>
       </div>
-
+      <p>{{ lesson.learning_objective }}</p>
       <div class="concept-list">
         <ConceptBadge
           v-for="concept in lesson.concepts || []"
@@ -17,18 +18,9 @@
           :concept="concept"
         />
       </div>
-
-      <div class="lesson-footer">
-        <span>{{ lesson.estimated_minutes || 10 }} min</span>
-        <RouterLink
-          class="button button-secondary"
-          :to="`/roadmap/${lesson.module_id}/lessons/${lesson.id}`"
-        >
-          Start Lesson
-        </RouterLink>
-      </div>
     </div>
-  </article>
+    <span class="button button-secondary">Start</span>
+  </RouterLink>
 </template>
 
 <script setup>
@@ -47,68 +39,76 @@ defineProps({
 </script>
 
 <style scoped>
-.lesson-card {
+.lesson-row {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
-  gap: var(--space-4);
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-2);
+}
+
+.lesson-row:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-muted);
 }
 
 .lesson-index {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 24px;
+  height: 24px;
   border-radius: 999px;
   background: var(--color-primary-soft);
   color: var(--color-primary);
-  font-weight: 900;
+  font-size: var(--font-xs);
+  font-weight: 850;
 }
 
-.lesson-body,
-.lesson-heading {
+.lesson-main {
   display: grid;
-  gap: var(--space-3);
+  gap: 4px;
+  min-width: 0;
 }
 
-.lesson-heading {
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
+.lesson-title-line,
+.concept-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
 }
 
-h2,
+h3,
 p {
   margin: 0;
 }
 
-h2 {
+h3 {
   color: var(--color-text);
-  font-size: 19px;
+  font-size: var(--font-sm);
+  line-height: 1.25;
 }
 
 p {
-  color: var(--color-muted);
-  line-height: 1.5;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.concept-list,
-.lesson-footer {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
+@media (max-width: 680px) {
+  .lesson-row {
+    grid-template-columns: 26px minmax(0, 1fr);
+  }
 
-.lesson-footer {
-  justify-content: space-between;
-  color: var(--color-muted);
-  font-size: 13px;
-  font-weight: 850;
-}
-
-@media (max-width: 620px) {
-  .lesson-card,
-  .lesson-heading {
-    grid-template-columns: 1fr;
+  .lesson-row .button {
+    grid-column: 2;
+    justify-self: start;
   }
 }
 </style>

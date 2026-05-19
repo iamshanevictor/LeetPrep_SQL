@@ -1,19 +1,25 @@
 <template>
-  <section class="page">
+  <section class="page module-page">
     <RouterLink class="back-link" to="/roadmap">Back to Roadmap</RouterLink>
-
-    <PageHeader
-      eyebrow="Roadmap module"
-      :title="moduleData?.title || 'Module'"
-      :subtitle="moduleData?.goal || ''"
-    />
 
     <LoadingState v-if="isLoading" message="Loading module..." />
     <ErrorState v-else-if="errorMessage" title="Could not load module" :message="errorMessage" />
-    <div v-else class="stack-lg">
-      <section class="card module-summary">
-        <div class="summary-copy">
-          <DifficultyBadge :difficulty="moduleData.difficulty" />
+    <div v-else class="module-layout">
+      <main class="module-main">
+        <header class="module-header card">
+          <div>
+            <p class="page-eyebrow">Roadmap module</p>
+            <h1>{{ moduleData.title }}</h1>
+            <p>{{ moduleData.goal }}</p>
+          </div>
+          <div class="header-meta">
+            <DifficultyBadge :difficulty="moduleData.difficulty" />
+            <span class="badge">Not Started</span>
+          </div>
+        </header>
+
+        <section class="card concept-panel">
+          <h2>Concepts</h2>
           <div class="concept-list">
             <ConceptBadge
               v-for="concept in moduleData.concepts || []"
@@ -21,32 +27,54 @@
               :concept="concept"
             />
           </div>
-        </div>
-        <span class="badge">Not Started</span>
-      </section>
+        </section>
 
-      <section class="stack">
-        <h2 class="section-title">Lessons</h2>
-        <div v-if="moduleData.lessons.length" class="lesson-list">
-          <LessonCard
-            v-for="(lesson, index) in moduleData.lessons"
-            :key="lesson.id"
-            :lesson="lesson"
-            :index="index"
+        <section class="lesson-section">
+          <div class="section-row">
+            <h2>Lessons</h2>
+            <span class="badge">{{ moduleData.lessons.length }} ready</span>
+          </div>
+          <div v-if="moduleData.lessons.length" class="lesson-list">
+            <LessonCard
+              v-for="(lesson, index) in moduleData.lessons"
+              :key="lesson.id"
+              :lesson="lesson"
+              :index="index"
+            />
+          </div>
+          <EmptyState
+            v-else
+            title="Lessons for this module will be added later."
+            message="This module is planned, but its tutorial content has not been written yet."
           />
-        </div>
-        <EmptyState
-          v-else
-          title="Lessons for this module will be added later."
-          message="This module is already planned in the roadmap, but its tutorial content has not been written yet."
-        />
-      </section>
+        </section>
+      </main>
 
-      <BossProblemCard
-        :module="moduleData"
-        :module-id="moduleData.id"
-        :boss-problem="moduleData.boss_problem"
-      />
+      <aside class="module-side">
+        <section class="card">
+          <h2>Module summary</h2>
+          <dl>
+            <div>
+              <dt>Lessons</dt>
+              <dd>{{ moduleData.lessons.length }}</dd>
+            </div>
+            <div>
+              <dt>Difficulty</dt>
+              <dd>{{ moduleData.difficulty }}</dd>
+            </div>
+            <div>
+              <dt>Progress</dt>
+              <dd>0%</dd>
+            </div>
+          </dl>
+        </section>
+
+        <BossProblemCard
+          :module="moduleData"
+          :module-id="moduleData.id"
+          :boss-problem="moduleData.boss_problem"
+        />
+      </aside>
     </div>
   </section>
 </template>
@@ -56,7 +84,6 @@ import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 import { fetchModule } from "../api/roadmap";
-import PageHeader from "../components/layout/PageHeader.vue";
 import BossProblemCard from "../components/roadmap/BossProblemCard.vue";
 import LessonCard from "../components/roadmap/LessonCard.vue";
 import ConceptBadge from "../components/ui/ConceptBadge.vue";
@@ -83,32 +110,117 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.module-summary {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-
-.summary-copy {
+.module-layout {
   display: grid;
-  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: var(--space-2);
+  align-items: start;
 }
 
-.concept-list {
-  display: flex;
-  flex-wrap: wrap;
+.module-main,
+.module-side,
+.lesson-list {
+  display: grid;
   gap: var(--space-2);
 }
 
-.lesson-list {
-  display: grid;
+.module-side {
+  position: sticky;
+  top: 57px;
+}
+
+.module-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: var(--space-3);
 }
 
-@media (max-width: 680px) {
-  .module-summary {
-    flex-direction: column;
+.module-header h1,
+.module-header p,
+.concept-panel h2,
+.section-row h2,
+.module-side h2 {
+  margin: 0;
+}
+
+.module-header h1 {
+  color: var(--color-text);
+  font-size: var(--font-lg);
+  line-height: 1.2;
+}
+
+.module-header p:not(.page-eyebrow) {
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  line-height: 1.4;
+}
+
+.header-meta,
+.concept-list,
+.section-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.header-meta {
+  justify-content: flex-end;
+}
+
+.concept-panel {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.section-row {
+  justify-content: space-between;
+}
+
+.section-row h2,
+.concept-panel h2,
+.module-side h2 {
+  font-size: var(--font-md);
+}
+
+dl {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+}
+
+dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-1);
+}
+
+dt,
+dd {
+  margin: 0;
+  font-size: var(--font-xs);
+}
+
+dt {
+  color: var(--color-text-muted);
+}
+
+dd {
+  color: var(--color-text);
+  font-weight: 800;
+  text-align: right;
+}
+
+@media (max-width: 920px) {
+  .module-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .module-side {
+    position: static;
   }
 }
 </style>

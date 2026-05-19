@@ -1,17 +1,17 @@
 <template>
-  <section class="card tutorial-panel">
-    <div class="card-header">
-      <h2 class="card-title">Concept Tutorial</h2>
-      <p class="card-description">{{ tutorial.explanation }}</p>
-    </div>
+  <section class="compact-panel">
+    <header class="compact-header">
+      <h2>Concept tutorial</h2>
+    </header>
+    <p>{{ tutorial.explanation }}</p>
 
     <div class="syntax-block">
-      <h3>Syntax Example</h3>
+      <h3>Syntax</h3>
       <pre><code>{{ tutorial.syntax }}</code></pre>
     </div>
 
     <div class="mental-model">
-      <h3>Mental Model</h3>
+      <h3>Mental model</h3>
       <p>{{ tutorial.mental_model }}</p>
     </div>
   </section>
@@ -27,45 +27,67 @@ defineProps({
 </script>
 
 <style scoped>
-.tutorial-panel {
+.compact-panel {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-2);
 }
 
+.compact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+h2,
 h3,
 p {
   margin: 0;
 }
 
+h2 {
+  color: var(--color-text);
+  font-size: var(--font-md);
+}
+
 h3 {
   color: var(--color-text);
-  font-size: 15px;
-  margin-bottom: var(--space-2);
+  font-size: var(--font-sm);
+}
+
+p {
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  line-height: 1.45;
 }
 
 pre {
   overflow-x: auto;
-  border-radius: var(--radius-md);
-  background: #111827;
+  border-radius: var(--radius-sm);
+  background: #101827;
   color: #f8fafc;
   margin: 0;
-  padding: var(--space-4);
+  padding: var(--space-2);
 }
 
 code {
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--font-xs);
+  line-height: 1.45;
+}
+
+.syntax-block,
+.mental-model {
+  display: grid;
+  gap: var(--space-1);
 }
 
 .mental-model {
-  border-left: 4px solid var(--color-success);
+  border-left: 3px solid var(--color-success);
   border-radius: var(--radius-sm);
   background: var(--color-success-soft);
-  padding: var(--space-4);
+  padding: var(--space-2);
 }
 
 .mental-model p {
   color: var(--color-text);
-  line-height: 1.55;
 }
 </style>

@@ -27,7 +27,7 @@ p {
 }
 
 h2 {
-  font-size: 18px;
+  font-size: var(--font-md);
   margin-bottom: var(--space-2);
 }
 </style>
