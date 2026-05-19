@@ -1,121 +1,101 @@
 <template>
-  <section class="page">
-    <RouterLink class="back-link" :to="`/roadmap/${route.params.moduleId}`">
-      Back to Module
-    </RouterLink>
-
-    <PageHeader
-      eyebrow="Boss Problem"
-      :title="bossProblem?.title || 'Boss Problem'"
-      subtitle="Final challenge for this module. Use the concepts together, then submit when your result matches the target output."
-    />
-
-    <LoadingState v-if="isLoading" message="Loading boss problem..." />
+  <section class="leetcode-workspace">
+    <LoadingState v-if="isLoading" class="workspace-state" message="Loading boss problem..." />
     <ErrorState
       v-else-if="errorMessage"
+      class="workspace-state"
       title="Could not load boss problem"
       :message="errorMessage"
     />
-    <div v-else class="two-column-layout boss-layout">
-      <main class="stack-lg">
-        <section class="boss-prompt">
-          <p class="boss-label">Final Challenge</p>
-          <h2>{{ bossProblem.title }}</h2>
-          <p>{{ bossProblem.prompt }}</p>
-        </section>
 
-        <section class="card">
-          <div class="card-header">
-            <h2 class="card-title">Required Concepts</h2>
-          </div>
-          <div class="concept-list">
-            <ConceptBadge
-              v-for="concept in bossProblem.concepts"
-              :key="concept"
-              :concept="concept"
-            />
-          </div>
-        </section>
-
-        <section class="card">
-          <div class="card-header">
-            <h2 class="card-title">Prerequisites</h2>
-            <p class="card-description">Review these lessons if the challenge feels too big.</p>
-          </div>
-          <ul class="plain-list">
-            <li v-for="lessonId in bossProblem.prerequisites" :key="lessonId">
-              {{ lessonId }}
-            </li>
-          </ul>
-        </section>
-
-        <section class="card">
-          <div class="card-header">
-            <h2 class="card-title">Expected Output</h2>
-            <p class="card-description">Your submitted query should return these columns and rows.</p>
-          </div>
-          <ResultTable :result="bossProblem.expected_result" />
-        </section>
-
-        <HintPanel :hints="bossProblem.hints" />
-
-        <section class="card">
-          <div class="card-header">
-            <h2 class="card-title">Common Mistakes</h2>
-          </div>
-          <ul class="plain-list">
-            <li v-for="mistake in bossProblem.common_mistakes" :key="mistake">
-              {{ mistake }}
-            </li>
-          </ul>
-        </section>
-      </main>
-
-      <aside class="workspace-column stack">
-        <SchemaViewer :schema="bossProblem.schema" />
-        <SampleDataViewer
+    <div v-else class="workspace-grid">
+      <aside class="description-pane">
+        <div class="pane-toolbar">
+          <RouterLink class="back-link-dark" :to="`/roadmap/${route.params.moduleId}`">
+            Back to Module
+          </RouterLink>
+          <span>{{ bossProblem.title }}</span>
+        </div>
+        <LeetCodeDescription
+          label="Boss Problem"
+          :title="bossProblem.title"
+          :concepts="bossProblem.concepts"
+          :prompt="bossProblem.prompt"
           :schema="bossProblem.schema"
           :seed-data="bossProblem.seed_data"
+          :expected-result="bossProblem.expected_result"
+          :order-matters="bossProblem.order_matters"
+          :hints="bossProblem.hints"
+          :prerequisites="bossProblem.prerequisites"
+          :common-mistakes="bossProblem.common_mistakes"
         />
+      </aside>
 
-        <section class="card editor-card">
-          <SqlEditor v-model="query" :disabled="isRunning || isSubmitting" />
-          <div class="actions">
+      <main class="code-pane">
+        <header class="run-toolbar">
+          <div class="toolbar-title">
+            <span class="code-icon">SQL</span>
+            <strong>Code</strong>
+          </div>
+          <div class="toolbar-actions">
             <button
-              class="button button-secondary"
+              class="run-button"
               type="button"
               :disabled="isRunning || isSubmitting"
               @click="runQuery"
             >
-              {{ isRunning ? "Running..." : "Run Query" }}
+              {{ isRunning ? "Running..." : "Run" }}
             </button>
             <button
-              class="button button-primary"
+              class="submit-button"
               type="button"
               :disabled="isRunning || isSubmitting"
               @click="submitQuery"
             >
-              {{ isSubmitting ? "Submitting..." : "Submit Answer" }}
+              {{ isSubmitting ? "Submitting..." : "Submit" }}
             </button>
           </div>
-        </section>
+        </header>
 
-        <FeedbackPanel :feedback="feedback" />
-
-        <section class="card">
-          <div class="card-header">
-            <h2 class="card-title">Your Result</h2>
+        <section class="editor-panel">
+          <div class="editor-meta">
+            <span>DuckDB SQL</span>
+            <span>Auto</span>
           </div>
-          <ResultTable :result="userResult" empty-message="Run your query to see results." />
+          <SqlEditor
+            v-model="query"
+            label=""
+            :disabled="isRunning || isSubmitting"
+            placeholder="-- Solve the boss problem below&#10;WITH ... AS (...)&#10;SELECT ...;"
+          />
         </section>
 
-        <section v-if="expectedResult" class="card">
-          <div class="card-header">
-            <h2 class="card-title">Expected Result</h2>
+        <section class="result-panel">
+          <div class="result-tabs">
+            <span class="tab active">Test Result</span>
+            <span class="tab">Expected Output</span>
           </div>
-          <ResultTable :result="expectedResult" />
+
+          <div class="result-body">
+            <FeedbackPanel :feedback="feedback" />
+
+            <div class="result-grid">
+              <section class="result-card">
+                <h2>Your Result</h2>
+                <ResultTable
+                  :result="userResult"
+                  empty-message="You must run your query first."
+                />
+              </section>
+
+              <section v-if="expectedResult" class="result-card">
+                <h2>Expected Result</h2>
+                <ResultTable :result="expectedResult" />
+              </section>
+            </div>
+          </div>
         </section>
-      </aside>
+      </main>
     </div>
   </section>
 </template>
@@ -126,13 +106,9 @@ import { useRoute } from "vue-router";
 
 import { fetchBossProblem, runBossQuery, submitBossQuery } from "../api/roadmap";
 import FeedbackPanel from "../components/learning/FeedbackPanel.vue";
-import HintPanel from "../components/learning/HintPanel.vue";
+import LeetCodeDescription from "../components/learning/LeetCodeDescription.vue";
 import ResultTable from "../components/learning/ResultTable.vue";
-import SampleDataViewer from "../components/learning/SampleDataViewer.vue";
-import SchemaViewer from "../components/learning/SchemaViewer.vue";
 import SqlEditor from "../components/learning/SqlEditor.vue";
-import PageHeader from "../components/layout/PageHeader.vue";
-import ConceptBadge from "../components/ui/ConceptBadge.vue";
 import ErrorState from "../components/ui/ErrorState.vue";
 import LoadingState from "../components/ui/LoadingState.vue";
 
@@ -207,73 +183,239 @@ async function submitQuery() {
 </script>
 
 <style scoped>
-.boss-layout {
-  align-items: start;
+.leetcode-workspace {
+  height: 100%;
+  min-height: 0;
+  background: #111111;
+  color: #f2f2f2;
+  padding: 8px;
 }
 
-.workspace-column {
-  position: sticky;
-  top: 86px;
+.workspace-state {
+  margin: 24px;
 }
 
-.boss-prompt {
+.workspace-grid {
   display: grid;
-  gap: var(--space-3);
-  border: 1px solid #f2c078;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, #fff7e8, #ffffff);
-  box-shadow: var(--shadow-card);
-  padding: var(--space-6);
+  grid-template-columns: minmax(380px, 1fr) minmax(420px, 1fr);
+  gap: 8px;
+  height: 100%;
+  min-height: 0;
 }
 
-.boss-label,
-.boss-prompt h2,
-.boss-prompt p {
-  margin: 0;
+.description-pane,
+.code-pane {
+  min-height: 0;
+  overflow: hidden;
 }
 
-.boss-label {
-  color: var(--color-warning);
+.description-pane {
+  display: grid;
+  grid-template-rows: 34px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.pane-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 8px;
+  background: #1f1f1f;
+  color: #bdbdbd;
   font-size: 13px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.boss-prompt h2 {
-  color: var(--color-text);
-  font-size: 24px;
-}
-
-.boss-prompt p {
-  color: var(--color-text);
-  font-size: 17px;
   font-weight: 700;
+  padding: 0 12px;
+}
+
+.back-link-dark {
+  color: #8ebeff;
+}
+
+.code-pane {
+  display: grid;
+  grid-template-rows: 44px minmax(230px, 1fr) minmax(230px, 0.9fr);
+  gap: 8px;
+}
+
+.run-toolbar,
+.editor-panel,
+.result-panel {
+  border-radius: 8px;
+  background: #242424;
+}
+
+.run-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px;
+}
+
+.toolbar-title,
+.toolbar-actions,
+.editor-meta,
+.result-tabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.code-icon {
+  color: #2ecc71;
+  font-weight: 900;
+}
+
+.toolbar-actions button {
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 8px 16px;
+}
+
+.toolbar-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.run-button {
+  background: #343434;
+  color: #e8e8e8;
+}
+
+.submit-button {
+  background: #1db954;
+  color: #06210f;
+}
+
+.editor-panel {
+  display: grid;
+  grid-template-rows: 34px minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-meta {
+  border-bottom: 1px solid #333333;
+  color: #bdbdbd;
+  font-size: 13px;
+  padding: 0 12px;
+}
+
+.editor-panel :deep(.sql-editor) {
+  min-height: 0;
+}
+
+.editor-panel :deep(textarea) {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: #242424;
+  color: #f2f2f2;
+  font-size: 14px;
   line-height: 1.6;
 }
 
-.concept-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+.result-panel {
+  display: grid;
+  grid-template-rows: 36px minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
 }
 
-.plain-list {
+.result-tabs {
+  border-bottom: 1px solid #333333;
+  padding: 0 12px;
+}
+
+.tab {
+  color: #a7a7a7;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.tab.active {
+  color: #ffffff;
+}
+
+.result-body {
   display: grid;
-  gap: var(--space-2);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.result-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.result-card {
+  display: grid;
+  gap: 10px;
+}
+
+.result-card h2 {
   margin: 0;
-  padding-left: 22px;
-  color: var(--color-muted);
-  line-height: 1.55;
+  color: #ffffff;
+  font-size: 14px;
 }
 
-.editor-card {
-  display: grid;
-  gap: var(--space-4);
+.result-panel :deep(.feedback-panel) {
+  box-shadow: none;
 }
 
-@media (max-width: 920px) {
-  .workspace-column {
-    position: static;
+.result-panel :deep(.result-table) {
+  border-color: #3f3f3f;
+}
+
+.result-panel :deep(table) {
+  background: #242424;
+  color: #dedede;
+}
+
+.result-panel :deep(th) {
+  background: #303030;
+  color: #ffffff;
+}
+
+.result-panel :deep(th),
+.result-panel :deep(td) {
+  border-color: #3f3f3f;
+}
+
+.result-panel :deep(.empty-result) {
+  color: #8c8c8c;
+  text-align: center;
+  padding: 54px 16px;
+}
+
+@media (max-width: 900px) {
+  .workspace-container {
+    height: auto;
+    overflow: visible;
+  }
+
+  .leetcode-workspace {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .workspace-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .description-pane {
+    min-height: 620px;
+  }
+
+  .code-pane {
+    min-height: 760px;
   }
 }
 </style>

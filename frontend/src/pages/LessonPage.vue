@@ -1,97 +1,101 @@
 <template>
-  <section class="page">
-    <RouterLink class="back-link" :to="`/roadmap/${route.params.moduleId}`">
-      Back to Module
-    </RouterLink>
-
-    <PageHeader
-      eyebrow="Lesson"
-      :title="lesson?.title || 'Lesson'"
-      :subtitle="lesson?.learning_objective || ''"
+  <section class="leetcode-workspace">
+    <LoadingState v-if="isLoading" class="workspace-state" message="Loading lesson..." />
+    <ErrorState
+      v-else-if="errorMessage"
+      class="workspace-state"
+      title="Could not load lesson"
+      :message="errorMessage"
     />
 
-    <LoadingState v-if="isLoading" message="Loading lesson..." />
-    <ErrorState v-else-if="errorMessage" title="Could not load lesson" :message="errorMessage" />
-    <div v-else class="two-column-layout lesson-layout">
-      <main class="stack-lg">
-        <section class="card">
-          <div class="card-header">
-            <h2 class="card-title">Learning Objective</h2>
-            <p class="card-description">{{ lesson.learning_objective }}</p>
+    <div v-else class="workspace-grid">
+      <aside class="description-pane">
+        <div class="pane-toolbar">
+          <RouterLink class="back-link-dark" :to="`/roadmap/${route.params.moduleId}`">
+            Back to Module
+          </RouterLink>
+          <span>{{ lesson.title }}</span>
+        </div>
+        <LeetCodeDescription
+          label="Lesson"
+          :title="lesson.title"
+          :concepts="lesson.concepts"
+          :prompt="lesson.practice.prompt"
+          :schema="lesson.schema"
+          :seed-data="lesson.seed_data"
+          :expected-result="lesson.expected_result"
+          :order-matters="lesson.practice.order_matters"
+          :tutorial="lesson.tutorial"
+          :guided-example="lesson.guided_example"
+          :hints="lesson.hints"
+        />
+      </aside>
+
+      <main class="code-pane">
+        <header class="run-toolbar">
+          <div class="toolbar-title">
+            <span class="code-icon">SQL</span>
+            <strong>Code</strong>
           </div>
-          <div class="concept-list">
-            <ConceptBadge
-              v-for="concept in lesson.concepts"
-              :key="concept"
-              :concept="concept"
-            />
-          </div>
-        </section>
-
-        <TutorialPanel :tutorial="lesson.tutorial" />
-        <GuidedExamplePanel :guided-example="lesson.guided_example" />
-
-        <section class="card practice-card">
-          <div class="card-header">
-            <h2 class="card-title">Practice Prompt</h2>
-            <p class="card-description">{{ lesson.practice.prompt }}</p>
-          </div>
-
-          <div class="expected-output">
-            <h3>Expected Output</h3>
-            <ResultTable
-              :result="lesson.expected_result"
-              empty-message="Expected output is not available yet."
-            />
-          </div>
-        </section>
-
-        <HintPanel :hints="lesson.hints" />
-      </main>
-
-      <aside class="workspace-column stack">
-        <SchemaViewer :schema="lesson.schema" />
-        <SampleDataViewer :schema="lesson.schema" :seed-data="lesson.seed_data" />
-
-        <section class="card editor-card">
-          <SqlEditor v-model="query" :disabled="isRunning || isSubmitting" />
-          <div class="actions">
+          <div class="toolbar-actions">
             <button
-              class="button button-secondary"
+              class="run-button"
               type="button"
               :disabled="isRunning || isSubmitting"
               @click="runQuery"
             >
-              {{ isRunning ? "Running..." : "Run Query" }}
+              {{ isRunning ? "Running..." : "Run" }}
             </button>
             <button
-              class="button button-primary"
+              class="submit-button"
               type="button"
               :disabled="isRunning || isSubmitting"
               @click="submitQuery"
             >
-              {{ isSubmitting ? "Submitting..." : "Submit Answer" }}
+              {{ isSubmitting ? "Submitting..." : "Submit" }}
             </button>
           </div>
-        </section>
+        </header>
 
-        <FeedbackPanel :feedback="feedback" />
-
-        <section class="card">
-          <div class="card-header">
-            <h2 class="card-title">Your Result</h2>
+        <section class="editor-panel">
+          <div class="editor-meta">
+            <span>DuckDB SQL</span>
+            <span>Auto</span>
           </div>
-          <ResultTable :result="userResult" empty-message="Run your query to see results." />
+          <SqlEditor
+            v-model="query"
+            label=""
+            :disabled="isRunning || isSubmitting"
+            placeholder="-- Write your SQL query below&#10;SELECT ...&#10;FROM ...;"
+          />
         </section>
 
-        <section v-if="expectedResult" class="card">
-          <div class="card-header">
-            <h2 class="card-title">Expected Result</h2>
-            <p class="card-description">Shown after an incorrect submission for comparison.</p>
+        <section class="result-panel">
+          <div class="result-tabs">
+            <span class="tab active">Test Result</span>
+            <span class="tab">Expected Output</span>
           </div>
-          <ResultTable :result="expectedResult" />
+
+          <div class="result-body">
+            <FeedbackPanel :feedback="feedback" />
+
+            <div class="result-grid">
+              <section class="result-card">
+                <h2>Your Result</h2>
+                <ResultTable
+                  :result="userResult"
+                  empty-message="You must run your query first."
+                />
+              </section>
+
+              <section v-if="expectedResult" class="result-card">
+                <h2>Expected Result</h2>
+                <ResultTable :result="expectedResult" />
+              </section>
+            </div>
+          </div>
         </section>
-      </aside>
+      </main>
     </div>
   </section>
 </template>
@@ -102,15 +106,9 @@ import { useRoute } from "vue-router";
 
 import { fetchLesson, runLessonQuery, submitLessonQuery } from "../api/roadmap";
 import FeedbackPanel from "../components/learning/FeedbackPanel.vue";
-import GuidedExamplePanel from "../components/learning/GuidedExamplePanel.vue";
-import HintPanel from "../components/learning/HintPanel.vue";
+import LeetCodeDescription from "../components/learning/LeetCodeDescription.vue";
 import ResultTable from "../components/learning/ResultTable.vue";
-import SampleDataViewer from "../components/learning/SampleDataViewer.vue";
-import SchemaViewer from "../components/learning/SchemaViewer.vue";
 import SqlEditor from "../components/learning/SqlEditor.vue";
-import TutorialPanel from "../components/learning/TutorialPanel.vue";
-import PageHeader from "../components/layout/PageHeader.vue";
-import ConceptBadge from "../components/ui/ConceptBadge.vue";
 import ErrorState from "../components/ui/ErrorState.vue";
 import LoadingState from "../components/ui/LoadingState.vue";
 
@@ -194,41 +192,239 @@ async function submitQuery() {
 </script>
 
 <style scoped>
-.lesson-layout {
-  align-items: start;
+.leetcode-workspace {
+  height: 100%;
+  min-height: 0;
+  background: #111111;
+  color: #f2f2f2;
+  padding: 8px;
 }
 
-.workspace-column {
-  position: sticky;
-  top: 86px;
+.workspace-state {
+  margin: 24px;
 }
 
-.concept-list {
+.workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(380px, 1fr) minmax(420px, 1fr);
+  gap: 8px;
+  height: 100%;
+  min-height: 0;
+}
+
+.description-pane,
+.code-pane {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.description-pane {
+  display: grid;
+  grid-template-rows: 34px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.pane-toolbar {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 8px;
+  background: #1f1f1f;
+  color: #bdbdbd;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 12px;
 }
 
-.practice-card,
-.expected-output {
+.back-link-dark {
+  color: #8ebeff;
+}
+
+.code-pane {
   display: grid;
-  gap: var(--space-4);
+  grid-template-rows: 44px minmax(230px, 1fr) minmax(230px, 0.9fr);
+  gap: 8px;
 }
 
-.expected-output h3 {
+.run-toolbar,
+.editor-panel,
+.result-panel {
+  border-radius: 8px;
+  background: #242424;
+}
+
+.run-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px;
+}
+
+.toolbar-title,
+.toolbar-actions,
+.editor-meta,
+.result-tabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.code-icon {
+  color: #2ecc71;
+  font-weight: 900;
+}
+
+.toolbar-actions button {
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 8px 16px;
+}
+
+.toolbar-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.run-button {
+  background: #343434;
+  color: #e8e8e8;
+}
+
+.submit-button {
+  background: #1db954;
+  color: #06210f;
+}
+
+.editor-panel {
+  display: grid;
+  grid-template-rows: 34px minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-meta {
+  border-bottom: 1px solid #333333;
+  color: #bdbdbd;
+  font-size: 13px;
+  padding: 0 12px;
+}
+
+.editor-panel :deep(.sql-editor) {
+  min-height: 0;
+}
+
+.editor-panel :deep(textarea) {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: #242424;
+  color: #f2f2f2;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.result-panel {
+  display: grid;
+  grid-template-rows: 36px minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.result-tabs {
+  border-bottom: 1px solid #333333;
+  padding: 0 12px;
+}
+
+.tab {
+  color: #a7a7a7;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.tab.active {
+  color: #ffffff;
+}
+
+.result-body {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.result-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.result-card {
+  display: grid;
+  gap: 10px;
+}
+
+.result-card h2 {
   margin: 0;
-  color: var(--color-text);
-  font-size: 15px;
+  color: #ffffff;
+  font-size: 14px;
 }
 
-.editor-card {
-  display: grid;
-  gap: var(--space-4);
+.result-panel :deep(.feedback-panel) {
+  box-shadow: none;
 }
 
-@media (max-width: 920px) {
-  .workspace-column {
-    position: static;
+.result-panel :deep(.result-table) {
+  border-color: #3f3f3f;
+}
+
+.result-panel :deep(table) {
+  background: #242424;
+  color: #dedede;
+}
+
+.result-panel :deep(th) {
+  background: #303030;
+  color: #ffffff;
+}
+
+.result-panel :deep(th),
+.result-panel :deep(td) {
+  border-color: #3f3f3f;
+}
+
+.result-panel :deep(.empty-result) {
+  color: #8c8c8c;
+  text-align: center;
+  padding: 54px 16px;
+}
+
+@media (max-width: 900px) {
+  .workspace-container {
+    height: auto;
+    overflow: visible;
+  }
+
+  .leetcode-workspace {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .workspace-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .description-pane {
+    min-height: 620px;
+  }
+
+  .code-pane {
+    min-height: 760px;
   }
 }
 </style>

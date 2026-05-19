@@ -1,6 +1,6 @@
 <template>
   <label class="sql-editor">
-    <span>{{ label }}</span>
+    <span v-if="label">{{ label }}</span>
     <textarea
       :value="modelValue"
       :placeholder="placeholder"
@@ -38,13 +38,16 @@ defineEmits(["update:modelValue"]);
 <style scoped>
 .sql-editor {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: var(--space-2);
+  height: 100%;
   color: var(--color-text);
   font-weight: 900;
 }
 
 textarea {
   width: 100%;
+  height: 100%;
   min-height: 260px;
   resize: vertical;
   border: 1px solid #253044;

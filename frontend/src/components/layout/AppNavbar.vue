@@ -1,5 +1,5 @@
 <template>
-  <header class="app-navbar">
+  <header class="app-navbar" :class="{ 'is-workspace': workspace }">
     <RouterLink class="brand" to="/" aria-label="LeetPrep-SQL dashboard">
       <span class="brand-mark">SQL</span>
       <span>LeetPrep-SQL</span>
@@ -12,6 +12,15 @@
     </nav>
   </header>
 </template>
+
+<script setup>
+defineProps({
+  workspace: {
+    type: Boolean,
+    default: false,
+  },
+});
+</script>
 
 <style scoped>
 .app-navbar {
@@ -69,6 +78,29 @@
 .nav-links a.router-link-active {
   background: var(--color-primary-soft);
   color: var(--color-primary);
+}
+
+.app-navbar.is-workspace {
+  border-bottom-color: #2b2b2b;
+  background: #111111;
+}
+
+.app-navbar.is-workspace .brand {
+  color: #f2f2f2;
+}
+
+.app-navbar.is-workspace .brand-mark {
+  background: #1db954;
+  color: #06210f;
+}
+
+.app-navbar.is-workspace .nav-links a {
+  color: #bdbdbd;
+}
+
+.app-navbar.is-workspace .nav-links a.router-link-active {
+  background: #242424;
+  color: #ffffff;
 }
 
 @media (max-width: 560px) {

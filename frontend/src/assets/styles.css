@@ -82,6 +82,13 @@ code {
   padding: var(--space-8) 0 64px;
 }
 
+.workspace-container {
+  height: calc(100vh - 63px);
+  min-height: 620px;
+  overflow: hidden;
+  background: #111111;
+}
+
 .page {
   display: grid;
   gap: var(--space-6);
@@ -299,6 +306,12 @@ code {
   .two-column-layout,
   .grid-3 {
     grid-template-columns: 1fr;
+  }
+
+  .workspace-container {
+    height: auto;
+    min-height: calc(100vh - 63px);
+    overflow: visible;
   }
 }
 
