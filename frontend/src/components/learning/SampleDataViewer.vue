@@ -1,14 +1,17 @@
 <template>
-  <section class="panel">
-    <h2 class="section-title">Sample Data</h2>
-    <div v-if="tables.length" class="sample-tables">
+  <section class="card sample-viewer">
+    <div class="card-header">
+      <h2 class="card-title">Sample Data</h2>
+      <p class="card-description">These rows are loaded into DuckDB for this exercise.</p>
+    </div>
+
+    <div v-if="tables.length" class="sample-list">
       <article v-for="table in tables" :key="table.name" class="sample-table">
-        <h3>{{ table.name }}</h3>
+        <h3>{{ table.name }} table</h3>
         <ResultTable :columns="table.columns" :rows="table.rows" />
       </article>
     </div>
-    <ResultTable v-else-if="columns.length && rows.length" :columns="columns" :rows="rows" />
-    <p v-else class="muted">Sample rows will appear here later.</p>
+    <p v-else class="muted">Sample rows are not available yet.</p>
   </section>
 </template>
 
@@ -25,14 +28,6 @@ const props = defineProps({
   seedData: {
     type: Object,
     default: () => ({}),
-  },
-  columns: {
-    type: Array,
-    default: () => [],
-  },
-  rows: {
-    type: Array,
-    default: () => [],
   },
 });
 
@@ -51,19 +46,19 @@ const tables = computed(() =>
 </script>
 
 <style scoped>
-.sample-tables {
+.sample-list,
+.sample-table {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .sample-table {
-  display: grid;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 h3 {
   margin: 0;
-  color: #344054;
+  color: var(--color-text);
   font-size: 15px;
 }
 </style>

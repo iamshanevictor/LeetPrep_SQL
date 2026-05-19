@@ -1,27 +1,47 @@
 <template>
-  <section>
-    <header class="page-header">
-      <RouterLink class="back-link" :to="`/roadmap/${route.params.moduleId}`">
-        Back to module
-      </RouterLink>
-      <h1 class="page-title">{{ bossProblem?.title || "Boss Problem" }}</h1>
-      <p class="page-subtitle">{{ bossProblem?.prompt }}</p>
-    </header>
+  <section class="page">
+    <RouterLink class="back-link" :to="`/roadmap/${route.params.moduleId}`">
+      Back to Module
+    </RouterLink>
 
-    <div v-if="isLoading" class="empty-state">Loading boss problem...</div>
-    <div v-else-if="errorMessage" class="empty-state">{{ errorMessage }}</div>
-    <div v-else class="boss-layout">
-      <div class="content-column">
-        <div class="concepts">
-          <ConceptBadge
-            v-for="concept in bossProblem.concepts"
-            :key="concept"
-            :concept="concept"
-          />
-        </div>
+    <PageHeader
+      eyebrow="Boss Problem"
+      :title="bossProblem?.title || 'Boss Problem'"
+      subtitle="Final challenge for this module. Use the concepts together, then submit when your result matches the target output."
+    />
 
-        <section class="panel">
-          <h2 class="section-title">Prerequisites</h2>
+    <LoadingState v-if="isLoading" message="Loading boss problem..." />
+    <ErrorState
+      v-else-if="errorMessage"
+      title="Could not load boss problem"
+      :message="errorMessage"
+    />
+    <div v-else class="two-column-layout boss-layout">
+      <main class="stack-lg">
+        <section class="boss-prompt">
+          <p class="boss-label">Final Challenge</p>
+          <h2>{{ bossProblem.title }}</h2>
+          <p>{{ bossProblem.prompt }}</p>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">Required Concepts</h2>
+          </div>
+          <div class="concept-list">
+            <ConceptBadge
+              v-for="concept in bossProblem.concepts"
+              :key="concept"
+              :concept="concept"
+            />
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">Prerequisites</h2>
+            <p class="card-description">Review these lessons if the challenge feels too big.</p>
+          </div>
           <ul class="plain-list">
             <li v-for="lessonId in bossProblem.prerequisites" :key="lessonId">
               {{ lessonId }}
@@ -29,59 +49,71 @@
           </ul>
         </section>
 
-        <LeetCodeStatement
-          label="Boss Problem"
-          :title="bossProblem.title"
-          :prompt="bossProblem.prompt"
-          :schema="bossProblem.schema"
-          :seed-data="bossProblem.seed_data"
-          :expected-result="bossProblem.expected_result"
-          :order-matters="bossProblem.order_matters"
-        />
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">Expected Output</h2>
+            <p class="card-description">Your submitted query should return these columns and rows.</p>
+          </div>
+          <ResultTable :result="bossProblem.expected_result" />
+        </section>
 
         <HintPanel :hints="bossProblem.hints" />
 
-        <section class="panel">
-          <h2 class="section-title">Common Mistakes</h2>
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">Common Mistakes</h2>
+          </div>
           <ul class="plain-list">
             <li v-for="mistake in bossProblem.common_mistakes" :key="mistake">
               {{ mistake }}
             </li>
           </ul>
         </section>
-      </div>
+      </main>
 
-      <aside class="workspace-column">
-        <section class="panel">
-          <SqlEditor v-model="query" />
+      <aside class="workspace-column stack">
+        <SchemaViewer :schema="bossProblem.schema" />
+        <SampleDataViewer
+          :schema="bossProblem.schema"
+          :seed-data="bossProblem.seed_data"
+        />
+
+        <section class="card editor-card">
+          <SqlEditor v-model="query" :disabled="isRunning || isSubmitting" />
           <div class="actions">
-            <button type="button" @click="runQuery">Run Query</button>
-            <button class="primary" type="button" @click="submitQuery">
-              Submit Answer
+            <button
+              class="button button-secondary"
+              type="button"
+              :disabled="isRunning || isSubmitting"
+              @click="runQuery"
+            >
+              {{ isRunning ? "Running..." : "Run Query" }}
+            </button>
+            <button
+              class="button button-primary"
+              type="button"
+              :disabled="isRunning || isSubmitting"
+              @click="submitQuery"
+            >
+              {{ isSubmitting ? "Submitting..." : "Submit Answer" }}
             </button>
           </div>
         </section>
 
-        <FeedbackPanel
-          :status="feedbackStatus"
-          :message="feedbackMessage"
-          :error="feedbackError"
-        />
+        <FeedbackPanel :feedback="feedback" />
 
-        <section class="panel">
-          <h2 class="section-title">Your Result</h2>
-          <ResultTable
-            :columns="userResult?.columns || []"
-            :rows="userResult?.rows || []"
-          />
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">Your Result</h2>
+          </div>
+          <ResultTable :result="userResult" empty-message="Run your query to see results." />
         </section>
 
-        <section v-if="expectedResult" class="panel">
-          <h2 class="section-title">Expected Result</h2>
-          <ResultTable
-            :columns="expectedResult.columns"
-            :rows="expectedResult.rows"
-          />
+        <section v-if="expectedResult" class="card">
+          <div class="card-header">
+            <h2 class="card-title">Expected Result</h2>
+          </div>
+          <ResultTable :result="expectedResult" />
         </section>
       </aside>
     </div>
@@ -93,22 +125,26 @@ import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 import { fetchBossProblem, runBossQuery, submitBossQuery } from "../api/roadmap";
-import ConceptBadge from "../components/ConceptBadge.vue";
-import FeedbackPanel from "../components/FeedbackPanel.vue";
-import HintPanel from "../components/HintPanel.vue";
-import LeetCodeStatement from "../components/LeetCodeStatement.vue";
-import ResultTable from "../components/ResultTable.vue";
-import SqlEditor from "../components/SqlEditor.vue";
+import FeedbackPanel from "../components/learning/FeedbackPanel.vue";
+import HintPanel from "../components/learning/HintPanel.vue";
+import ResultTable from "../components/learning/ResultTable.vue";
+import SampleDataViewer from "../components/learning/SampleDataViewer.vue";
+import SchemaViewer from "../components/learning/SchemaViewer.vue";
+import SqlEditor from "../components/learning/SqlEditor.vue";
+import PageHeader from "../components/layout/PageHeader.vue";
+import ConceptBadge from "../components/ui/ConceptBadge.vue";
+import ErrorState from "../components/ui/ErrorState.vue";
+import LoadingState from "../components/ui/LoadingState.vue";
 
 const route = useRoute();
 const bossProblem = ref(null);
 const query = ref("");
 const userResult = ref(null);
 const expectedResult = ref(null);
-const feedbackStatus = ref("idle");
-const feedbackMessage = ref("");
-const feedbackError = ref("");
+const feedback = ref({ status: "neutral", message: "" });
 const isLoading = ref(true);
+const isRunning = ref(false);
+const isSubmitting = ref(false);
 const errorMessage = ref("");
 
 onMounted(async () => {
@@ -123,100 +159,119 @@ onMounted(async () => {
 });
 
 async function runQuery() {
+  isRunning.value = true;
   expectedResult.value = null;
-  feedbackError.value = "";
+  feedback.value = { status: "neutral", message: "Running your query..." };
 
   try {
     const data = await runBossQuery(route.params.moduleId, query.value);
     userResult.value = data.result;
-    feedbackStatus.value = "success";
-    feedbackMessage.value = "Query ran successfully. Check your result before submitting.";
+    feedback.value = {
+      status: "success",
+      message: "Query ran successfully. Review your output before submitting.",
+    };
   } catch (error) {
-    feedbackStatus.value = "error";
-    feedbackMessage.value = "The query could not run.";
-    feedbackError.value = error.message;
+    feedback.value = {
+      status: "error",
+      message: "The query could not run.",
+      error: error.message,
+    };
+  } finally {
+    isRunning.value = false;
   }
 }
 
 async function submitQuery() {
-  feedbackError.value = "";
+  isSubmitting.value = true;
+  feedback.value = { status: "neutral", message: "Checking your answer..." };
 
-  const data = await submitBossQuery(route.params.moduleId, query.value);
-  userResult.value = data.user_result;
-  expectedResult.value = data.expected_result;
-  feedbackStatus.value = data.is_correct ? "success" : "error";
-  feedbackMessage.value = data.feedback;
-  feedbackError.value = data.error || "";
+  try {
+    const data = await submitBossQuery(route.params.moduleId, query.value);
+    userResult.value = data.user_result;
+    expectedResult.value = data.expected_result;
+    feedback.value = {
+      status: data.is_correct ? "success" : "incorrect",
+      message: data.feedback,
+      error: data.error || "",
+    };
+  } catch (error) {
+    feedback.value = {
+      status: "error",
+      message: "The submission could not be checked.",
+      error: error.message,
+    };
+  } finally {
+    isSubmitting.value = false;
+  }
 }
 </script>
 
 <style scoped>
-.back-link {
-  color: #1459b8;
-  font-weight: 800;
-}
-
 .boss-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 440px);
-  gap: 16px;
-}
-
-.content-column,
-.workspace-column {
-  display: grid;
-  align-content: start;
-  gap: 16px;
+  align-items: start;
 }
 
 .workspace-column {
   position: sticky;
-  top: 16px;
+  top: 86px;
 }
 
-.concepts {
+.boss-prompt {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid #f2c078;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, #fff7e8, #ffffff);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-6);
+}
+
+.boss-label,
+.boss-prompt h2,
+.boss-prompt p {
+  margin: 0;
+}
+
+.boss-label {
+  color: var(--color-warning);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.boss-prompt h2 {
+  color: var(--color-text);
+  font-size: 24px;
+}
+
+.boss-prompt p {
+  color: var(--color-text);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.concept-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .plain-list {
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 0;
   padding-left: 22px;
-  color: #526070;
-  line-height: 1.5;
+  color: var(--color-muted);
+  line-height: 1.55;
 }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 14px;
+.editor-card {
+  display: grid;
+  gap: var(--space-4);
 }
 
-button {
-  border: 1px solid #cfd8e6;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #1459b8;
-  cursor: pointer;
-  font-weight: 800;
-  padding: 10px 14px;
-}
-
-button.primary {
-  border-color: #1459b8;
-  background: #1459b8;
-  color: #ffffff;
-}
-
-@media (max-width: 960px) {
-  .boss-layout {
-    grid-template-columns: 1fr;
-  }
-
+@media (max-width: 920px) {
   .workspace-column {
     position: static;
   }

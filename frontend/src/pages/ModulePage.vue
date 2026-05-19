@@ -1,38 +1,51 @@
 <template>
-  <section>
-    <header class="page-header">
-      <RouterLink class="back-link" to="/roadmap">Back to roadmap</RouterLink>
-      <h1 class="page-title">{{ module?.title || "Module" }}</h1>
-      <p class="page-subtitle">{{ module?.goal }}</p>
-    </header>
+  <section class="page">
+    <RouterLink class="back-link" to="/roadmap">Back to Roadmap</RouterLink>
 
-    <div v-if="isLoading" class="empty-state">Loading module...</div>
-    <div v-else-if="errorMessage" class="empty-state">{{ errorMessage }}</div>
-    <div v-else>
-      <section class="panel progress-panel">
-        <div>
-          <h2 class="section-title">Progress</h2>
-          <p class="muted">Progress tracking will be added later.</p>
+    <PageHeader
+      eyebrow="Roadmap module"
+      :title="moduleData?.title || 'Module'"
+      :subtitle="moduleData?.goal || ''"
+    />
+
+    <LoadingState v-if="isLoading" message="Loading module..." />
+    <ErrorState v-else-if="errorMessage" title="Could not load module" :message="errorMessage" />
+    <div v-else class="stack-lg">
+      <section class="card module-summary">
+        <div class="summary-copy">
+          <DifficultyBadge :difficulty="moduleData.difficulty" />
+          <div class="concept-list">
+            <ConceptBadge
+              v-for="concept in moduleData.concepts || []"
+              :key="concept"
+              :concept="concept"
+            />
+          </div>
         </div>
-        <span class="progress-status">Not started</span>
+        <span class="badge">Not Started</span>
       </section>
 
-      <div v-if="module.lessons.length" class="lesson-grid">
-        <LessonCard
-          v-for="lesson in module.lessons"
-          :key="lesson.id"
-          :lesson="lesson"
+      <section class="stack">
+        <h2 class="section-title">Lessons</h2>
+        <div v-if="moduleData.lessons.length" class="lesson-list">
+          <LessonCard
+            v-for="(lesson, index) in moduleData.lessons"
+            :key="lesson.id"
+            :lesson="lesson"
+            :index="index"
+          />
+        </div>
+        <EmptyState
+          v-else
+          title="Lessons for this module will be added later."
+          message="This module is already planned in the roadmap, but its tutorial content has not been written yet."
         />
-      </div>
-
-      <div v-else class="empty-state">
-        Lessons for this module will be added later.
-      </div>
+      </section>
 
       <BossProblemCard
-        class="boss-section"
-        :module="module"
-        :boss-problem="module.boss_problem"
+        :module="moduleData"
+        :module-id="moduleData.id"
+        :boss-problem="moduleData.boss_problem"
       />
     </div>
   </section>
@@ -43,18 +56,24 @@ import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 import { fetchModule } from "../api/roadmap";
-import BossProblemCard from "../components/BossProblemCard.vue";
-import LessonCard from "../components/LessonCard.vue";
+import PageHeader from "../components/layout/PageHeader.vue";
+import BossProblemCard from "../components/roadmap/BossProblemCard.vue";
+import LessonCard from "../components/roadmap/LessonCard.vue";
+import ConceptBadge from "../components/ui/ConceptBadge.vue";
+import DifficultyBadge from "../components/ui/DifficultyBadge.vue";
+import EmptyState from "../components/ui/EmptyState.vue";
+import ErrorState from "../components/ui/ErrorState.vue";
+import LoadingState from "../components/ui/LoadingState.vue";
 
 const route = useRoute();
-const module = ref(null);
+const moduleData = ref(null);
 const isLoading = ref(true);
 const errorMessage = ref("");
 
 onMounted(async () => {
   try {
     const data = await fetchModule(route.params.moduleId);
-    module.value = data.module;
+    moduleData.value = data.module;
   } catch (error) {
     errorMessage.value = error.message;
   } finally {
@@ -64,34 +83,32 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.back-link {
-  color: #1459b8;
-  font-weight: 800;
-}
-
-.progress-panel {
+.module-summary {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: var(--space-4);
 }
 
-.progress-status {
-  border: 1px solid #d9e1ec;
-  border-radius: 999px;
-  color: #526070;
-  font-size: 13px;
-  font-weight: 800;
-  padding: 6px 10px;
-}
-
-.lesson-grid {
+.summary-copy {
   display: grid;
-  gap: 14px;
+  gap: var(--space-3);
 }
 
-.boss-section {
-  margin-top: 16px;
+.concept-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.lesson-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (max-width: 680px) {
+  .module-summary {
+    flex-direction: column;
+  }
 }
 </style>

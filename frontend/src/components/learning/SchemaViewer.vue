@@ -1,25 +1,33 @@
 <template>
-  <section class="panel">
-    <h2 class="section-title">Schema</h2>
+  <section class="card schema-viewer">
+    <div class="card-header">
+      <h2 class="card-title">Schema</h2>
+      <p class="card-description">Reference the available tables and column types.</p>
+    </div>
+
     <div v-if="normalizedTables.length" class="schema-list">
       <article v-for="table in normalizedTables" :key="table.name" class="schema-table">
         <h3>{{ table.name }}</h3>
-        <ul>
-          <li v-for="column in table.columns" :key="column.name">
-            <span>{{ column.name }}</span>
-            <code>{{ column.type }}</code>
-          </li>
-        </ul>
+        <ResultTable
+          :columns="['Column', 'Type']"
+          :rows="table.columns.map((column) => [column.name, column.type])"
+        />
       </article>
     </div>
-    <p v-else class="muted">Schema details will appear here later.</p>
+    <p v-else class="muted">Schema details are not available yet.</p>
   </section>
 </template>
 
 <script setup>
 import { computed } from "vue";
 
+import ResultTable from "./ResultTable.vue";
+
 const props = defineProps({
+  schema: {
+    type: Array,
+    default: () => [],
+  },
   tables: {
     type: Array,
     default: () => [],
@@ -27,7 +35,7 @@ const props = defineProps({
 });
 
 const normalizedTables = computed(() =>
-  props.tables.map((table) => ({
+  (props.schema.length ? props.schema : props.tables).map((table) => ({
     name: table.name || table.table_name,
     columns: Array.isArray(table.columns)
       ? table.columns
@@ -39,35 +47,17 @@ const normalizedTables = computed(() =>
 <style scoped>
 .schema-list {
   display: grid;
-  gap: 12px;
+  gap: var(--space-4);
 }
 
 .schema-table {
-  border: 1px solid #e4e9f2;
-  border-radius: 8px;
-  padding: 12px;
+  display: grid;
+  gap: var(--space-2);
 }
 
 h3 {
-  margin: 0 0 8px;
-  font-size: 16px;
-}
-
-ul {
-  display: grid;
-  gap: 6px;
-  list-style: none;
   margin: 0;
-  padding: 0;
-}
-
-li {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-code {
-  color: #1459b8;
+  color: var(--color-text);
+  font-size: 15px;
 }
 </style>

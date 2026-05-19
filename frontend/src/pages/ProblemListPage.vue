@@ -1,27 +1,31 @@
 <template>
-  <section>
-    <header class="page-header">
-      <h1 class="page-title">Problems</h1>
-      <p class="page-subtitle">
-        SQL practice problems will be listed here when you add problem files.
-      </p>
-    </header>
+  <section class="page">
+    <PageHeader
+      eyebrow="Practice library"
+      title="Problems"
+      subtitle="Standalone SQL practice problems will appear here after the learning roadmap content is expanded."
+    />
 
-    <div v-if="isLoading" class="empty-state">Loading problems...</div>
-    <div v-else-if="errorMessage" class="empty-state">{{ errorMessage }}</div>
+    <LoadingState v-if="isLoading" message="Loading problems..." />
+    <ErrorState v-else-if="errorMessage" title="Could not load problems" :message="errorMessage" />
     <div v-else-if="problems.length" class="problem-grid">
-      <ProblemCard
-        v-for="problem in problems"
-        :id="problem.id"
-        :key="problem.id"
-        :description="problem.description"
-        :difficulty="problem.difficulty"
-        :title="problem.title"
-      />
+      <article v-for="problem in problems" :key="problem.id" class="card problem-card">
+        <div class="card-header">
+          <h2 class="card-title">{{ problem.title }}</h2>
+          <p class="card-description">{{ problem.description }}</p>
+        </div>
+        <RouterLink class="button button-secondary" :to="`/problems/${problem.id}`">
+          Open Problem
+        </RouterLink>
+      </article>
     </div>
-    <div v-else class="empty-state">
-      No practice problems yet. Add problem instructions later to start practicing.
-    </div>
+    <EmptyState
+      v-else
+      title="No practice problems yet."
+      message="Add standalone problem instructions later. For now, use the roadmap to learn the SQL patterns step by step."
+      action-label="Open Roadmap"
+      action-to="/roadmap"
+    />
   </section>
 </template>
 
@@ -29,7 +33,10 @@
 import { onMounted, ref } from "vue";
 
 import { fetchProblems } from "../api/problems";
-import ProblemCard from "../components/ProblemCard.vue";
+import PageHeader from "../components/layout/PageHeader.vue";
+import EmptyState from "../components/ui/EmptyState.vue";
+import ErrorState from "../components/ui/ErrorState.vue";
+import LoadingState from "../components/ui/LoadingState.vue";
 
 const problems = ref([]);
 const isLoading = ref(true);
@@ -46,3 +53,17 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped>
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+
+.problem-card {
+  display: grid;
+  align-content: space-between;
+  gap: var(--space-4);
+}
+</style>

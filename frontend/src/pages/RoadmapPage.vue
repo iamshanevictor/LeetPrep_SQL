@@ -1,33 +1,43 @@
 <template>
-  <section>
-    <header class="page-header">
-      <h1 class="page-title">{{ roadmap?.title || "SQL Learning Roadmap" }}</h1>
-      <p class="page-subtitle">
-        {{ roadmap?.description || "Build SQL skills one pattern at a time." }}
-      </p>
-    </header>
+  <section class="page">
+    <PageHeader
+      eyebrow="Learning path"
+      title="SQL Learning Roadmap"
+      :subtitle="roadmap?.description || 'Build SQL skills one pattern at a time.'"
+    />
 
-    <div v-if="isLoading" class="empty-state">Loading roadmap...</div>
-    <div v-else-if="errorMessage" class="empty-state">{{ errorMessage }}</div>
-    <div v-else class="roadmap-grid">
+    <LoadingState v-if="isLoading" message="Loading roadmap..." />
+    <ErrorState v-else-if="errorMessage" title="Could not load roadmap" :message="errorMessage" />
+    <div v-else-if="modules.length" class="roadmap-grid">
       <RoadmapModuleCard
-        v-for="module in roadmap.modules"
+        v-for="module in modules"
         :key="module.id"
         :module="module"
       />
     </div>
+    <EmptyState
+      v-else
+      title="Roadmap modules have not been added yet."
+      message="Add module metadata in the backend roadmap JSON to start building the path."
+    />
   </section>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 
 import { fetchRoadmap } from "../api/roadmap";
-import RoadmapModuleCard from "../components/RoadmapModuleCard.vue";
+import PageHeader from "../components/layout/PageHeader.vue";
+import RoadmapModuleCard from "../components/roadmap/RoadmapModuleCard.vue";
+import EmptyState from "../components/ui/EmptyState.vue";
+import ErrorState from "../components/ui/ErrorState.vue";
+import LoadingState from "../components/ui/LoadingState.vue";
 
 const roadmap = ref(null);
 const isLoading = ref(true);
 const errorMessage = ref("");
+
+const modules = computed(() => roadmap.value?.modules || []);
 
 onMounted(async () => {
   try {
@@ -44,6 +54,6 @@ onMounted(async () => {
 .roadmap-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 16px;
+  gap: var(--space-4);
 }
 </style>

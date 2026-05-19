@@ -1,61 +1,22 @@
 <template>
-  <section class="detail-layout">
-    <header class="page-header">
-      <h1 class="page-title">Problem Workspace</h1>
-      <p class="page-subtitle">
-        Problem details will appear here once practice problems are added.
-      </p>
-    </header>
+  <section class="page">
+    <RouterLink class="back-link" to="/problems">Back to Problems</RouterLink>
+    <PageHeader
+      eyebrow="Problem workspace"
+      title="Problem Details"
+      subtitle="Standalone problem details will appear here once practice problems are added."
+    />
 
-    <div class="workspace-grid">
-      <div class="left-column">
-        <SchemaViewer />
-        <SampleDataViewer />
-      </div>
-
-      <div class="right-column">
-        <section class="panel">
-          <SqlEditor v-model="query" />
-        </section>
-        <FeedbackPanel />
-        <section class="panel">
-          <h2 class="section-title">Results</h2>
-          <ResultTable />
-        </section>
-      </div>
-    </div>
+    <EmptyState
+      title="This problem is not available yet."
+      message="The app is currently focused on roadmap lessons and boss problems. Standalone problem content can be added later."
+      action-label="Open Roadmap"
+      action-to="/roadmap"
+    />
   </section>
 </template>
 
 <script setup>
-import { ref } from "vue";
-
-import FeedbackPanel from "../components/FeedbackPanel.vue";
-import ResultTable from "../components/ResultTable.vue";
-import SampleDataViewer from "../components/SampleDataViewer.vue";
-import SchemaViewer from "../components/SchemaViewer.vue";
-import SqlEditor from "../components/SqlEditor.vue";
-
-const query = ref("");
+import PageHeader from "../components/layout/PageHeader.vue";
+import EmptyState from "../components/ui/EmptyState.vue";
 </script>
-
-<style scoped>
-.workspace-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
-  gap: 16px;
-}
-
-.left-column,
-.right-column {
-  display: grid;
-  align-content: start;
-  gap: 16px;
-}
-
-@media (max-width: 860px) {
-  .workspace-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
