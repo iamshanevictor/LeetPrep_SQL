@@ -1,8 +1,8 @@
 <template>
   <section class="panel">
     <h2 class="section-title">Schema</h2>
-    <div v-if="tables.length" class="schema-list">
-      <article v-for="table in tables" :key="table.name" class="schema-table">
+    <div v-if="normalizedTables.length" class="schema-list">
+      <article v-for="table in normalizedTables" :key="table.name" class="schema-table">
         <h3>{{ table.name }}</h3>
         <ul>
           <li v-for="column in table.columns" :key="column.name">
@@ -17,12 +17,23 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from "vue";
+
+const props = defineProps({
   tables: {
     type: Array,
     default: () => [],
   },
 });
+
+const normalizedTables = computed(() =>
+  props.tables.map((table) => ({
+    name: table.name || table.table_name,
+    columns: Array.isArray(table.columns)
+      ? table.columns
+      : Object.entries(table.columns || {}).map(([name, type]) => ({ name, type })),
+  })),
+);
 </script>
 
 <style scoped>

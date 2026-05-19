@@ -1,3 +1,6 @@
+from app.services.learning_loader import get_boss_problem, get_lesson
+
+
 def list_problems():
     """Return all available SQL practice problem summaries.
 
@@ -8,12 +11,20 @@ def list_problems():
 
 
 def get_problem(problem_id):
-    """Return one SQL practice problem by id.
+    """Return one standalone or learning-content problem by id.
 
     Args:
-        problem_id: The stable identifier for a future problem JSON file.
+        problem_id: A future standalone id, or a learning content id formatted
+            as learning:<module_id>:lesson:<lesson_id> or learning:<module_id>:boss.
 
     Returns:
-        None until the problem file format and loader are implemented.
+        A loaded learning content item when supported, otherwise None.
     """
+    parts = problem_id.split(":")
+    if len(parts) == 4 and parts[0] == "learning" and parts[2] == "lesson":
+        return get_lesson(parts[1], parts[3])
+
+    if len(parts) == 3 and parts[0] == "learning" and parts[2] == "boss":
+        return get_boss_problem(parts[1])
+
     return None

@@ -1,0 +1,52 @@
+{
+  "id": "lesson_01_group_by_avg",
+  "module_id": "module_01_salary_comparison",
+  "order": 1,
+  "type": "tutorial_practice",
+  "title": "Calculate Average Salary by Department",
+  "difficulty": "Beginner",
+  "concepts": ["GROUP BY", "AVG"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how to group employees by department and calculate average salary.",
+  "tutorial": {
+    "explanation": "When a question asks for one answer per group, GROUP BY is usually the tool you need. Here, each department_id becomes one group, and AVG calculates one salary value inside each group.",
+    "syntax": "SELECT department_id, AVG(salary) AS avg_salary FROM employees GROUP BY department_id;",
+    "mental_model": "GROUP BY creates one result row per department. AVG then looks only at the rows inside that department group."
+  },
+  "schema": [
+    {
+      "table_name": "employees",
+      "columns": {
+        "employee_id": "INTEGER",
+        "employee_name": "TEXT",
+        "department_id": "INTEGER",
+        "salary": "INTEGER"
+      }
+    }
+  ],
+  "seed_data": {
+    "employees": [
+      [1, "Alice", 1, 60000],
+      [2, "Bob", 1, 70000],
+      [3, "Cara", 2, 80000],
+      [4, "Dan", 2, 90000],
+      [5, "Eli", 3, 75000]
+    ]
+  },
+  "guided_example": {
+    "prompt": "Find the average salary for each department.",
+    "solution_query": "SELECT department_id, AVG(salary) AS avg_salary FROM employees GROUP BY department_id;",
+    "explanation": "We group rows by department_id, then calculate the average salary inside each group."
+  },
+  "practice": {
+    "prompt": "Find the total salary for each department.",
+    "expected_query": "SELECT department_id, SUM(salary) AS total_salary FROM employees GROUP BY department_id;",
+    "expected_columns": ["department_id", "total_salary"],
+    "order_matters": false
+  },
+  "hints": [
+    "Start by selecting department_id.",
+    "Use SUM(salary).",
+    "Remember to GROUP BY department_id."
+  ]
+}

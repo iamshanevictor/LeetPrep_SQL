@@ -1,0 +1,50 @@
+{
+  "id": "lesson_03_case_when",
+  "module_id": "module_01_salary_comparison",
+  "order": 3,
+  "type": "tutorial_practice",
+  "title": "Create Comparison Labels with CASE WHEN",
+  "difficulty": "Beginner to Intermediate",
+  "concepts": ["CASE WHEN", "Comparison logic"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how to turn numeric comparisons into readable labels.",
+  "tutorial": {
+    "explanation": "CASE WHEN lets SQL choose a text label based on conditions. This is useful when you need to say whether one value is higher, lower, or the same as another value.",
+    "syntax": "CASE WHEN salary > 80000 THEN 'higher' WHEN salary < 80000 THEN 'lower' ELSE 'same' END AS salary_label",
+    "mental_model": "CASE checks conditions from top to bottom. The first true condition wins. ELSE handles anything that did not match."
+  },
+  "schema": [
+    {
+      "table_name": "employees",
+      "columns": {
+        "employee_id": "INTEGER",
+        "employee_name": "TEXT",
+        "department_id": "INTEGER",
+        "salary": "INTEGER"
+      }
+    }
+  ],
+  "seed_data": {
+    "employees": [
+      [1, "Alice", 1, 60000],
+      [2, "Bob", 1, 80000],
+      [3, "Cara", 2, 90000]
+    ]
+  },
+  "guided_example": {
+    "prompt": "Label each employee's salary as higher, lower, or same compared with 80000.",
+    "solution_query": "SELECT employee_name, salary, CASE WHEN salary > 80000 THEN 'higher' WHEN salary < 80000 THEN 'lower' ELSE 'same' END AS salary_label FROM employees;",
+    "explanation": "The CASE expression compares each row's salary to 80000 and returns a label for that row."
+  },
+  "practice": {
+    "prompt": "Return employee_name and comparison_result, where comparison_result compares salary to 80000 using 'higher', 'lower', or 'same'.",
+    "expected_query": "SELECT employee_name, CASE WHEN salary > 80000 THEN 'higher' WHEN salary < 80000 THEN 'lower' ELSE 'same' END AS comparison_result FROM employees;",
+    "expected_columns": ["employee_name", "comparison_result"],
+    "order_matters": false
+  },
+  "hints": [
+    "CASE WHEN belongs in the SELECT list.",
+    "Check salary > 80000 first.",
+    "Use ELSE 'same' for the equal case."
+  ]
+}

@@ -38,6 +38,17 @@ def run_problem_query(problem_id):
     problem = get_problem(problem_id)
     query = (request.get_json(silent=True) or {}).get("query", "")
 
+    if problem is None:
+        return (
+            jsonify(
+                {
+                    "error": "Not implemented",
+                    "message": "SQL execution will be added after the problem format is finalized.",
+                }
+            ),
+            501,
+        )
+
     try:
         result = run_user_query(problem, query)
     except NotImplementedError:
@@ -59,6 +70,17 @@ def submit_problem_query(problem_id):
     """Placeholder endpoint for future automated grading."""
     problem = get_problem(problem_id)
     query = (request.get_json(silent=True) or {}).get("query", "")
+
+    if problem is None:
+        return (
+            jsonify(
+                {
+                    "error": "Not implemented",
+                    "message": "Grading will be added after the problem format is finalized.",
+                }
+            ),
+            501,
+        )
 
     try:
         result = grade_submission(problem, query)

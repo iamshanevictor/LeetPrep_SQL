@@ -3,6 +3,7 @@
     <RouterLink class="brand" to="/">LeetPrep-SQL</RouterLink>
     <nav class="nav-links" aria-label="Primary navigation">
       <RouterLink to="/">Dashboard</RouterLink>
+      <RouterLink to="/roadmap">Roadmap</RouterLink>
       <RouterLink to="/problems">Problems</RouterLink>
     </nav>
   </header>

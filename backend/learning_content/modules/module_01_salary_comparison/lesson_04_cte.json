@@ -1,0 +1,52 @@
+{
+  "id": "lesson_04_cte",
+  "module_id": "module_01_salary_comparison",
+  "order": 4,
+  "type": "tutorial_practice",
+  "title": "Use CTEs to Organize Multi-Step Queries",
+  "difficulty": "Intermediate",
+  "concepts": ["CTE", "WITH", "GROUP BY", "AVG"],
+  "estimated_minutes": 20,
+  "learning_objective": "Learn how to use a CTE to name an intermediate result before querying it.",
+  "tutorial": {
+    "explanation": "A CTE, written with WITH, lets you build a temporary named result. This keeps advanced SQL readable because each step can have a clear purpose.",
+    "syntax": "WITH department_averages AS (SELECT department_id, AVG(salary) AS avg_salary FROM employees GROUP BY department_id) SELECT * FROM department_averages;",
+    "mental_model": "Think of a CTE as a labeled scratch table that exists only for the query. First define the step, then select from it."
+  },
+  "schema": [
+    {
+      "table_name": "employees",
+      "columns": {
+        "employee_id": "INTEGER",
+        "employee_name": "TEXT",
+        "department_id": "INTEGER",
+        "salary": "INTEGER"
+      }
+    }
+  ],
+  "seed_data": {
+    "employees": [
+      [1, "Alice", 1, 60000],
+      [2, "Bob", 1, 70000],
+      [3, "Cara", 2, 90000],
+      [4, "Dan", 2, 95000],
+      [5, "Eli", 3, 75000]
+    ]
+  },
+  "guided_example": {
+    "prompt": "Use a CTE to calculate average salary by department, then show all department averages.",
+    "solution_query": "WITH department_averages AS (SELECT department_id, AVG(salary) AS avg_salary FROM employees GROUP BY department_id) SELECT department_id, avg_salary FROM department_averages;",
+    "explanation": "The CTE handles the grouping step. The outer query reads from that named result."
+  },
+  "practice": {
+    "prompt": "Use a CTE named department_averages to return department_id and avg_salary for departments with an average salary greater than 75000.",
+    "expected_query": "WITH department_averages AS (SELECT department_id, AVG(salary) AS avg_salary FROM employees GROUP BY department_id) SELECT department_id, avg_salary FROM department_averages WHERE avg_salary > 75000;",
+    "expected_columns": ["department_id", "avg_salary"],
+    "order_matters": false
+  },
+  "hints": [
+    "Start with WITH department_averages AS (...).",
+    "Inside the CTE, group by department_id.",
+    "Filter avg_salary in the outer SELECT."
+  ]
+}

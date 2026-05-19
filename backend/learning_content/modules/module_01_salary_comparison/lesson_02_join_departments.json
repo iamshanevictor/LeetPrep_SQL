@@ -1,0 +1,63 @@
+{
+  "id": "lesson_02_join_departments",
+  "module_id": "module_01_salary_comparison",
+  "order": 2,
+  "type": "tutorial_practice",
+  "title": "Join Employees to Departments",
+  "difficulty": "Beginner",
+  "concepts": ["INNER JOIN", "Table relationships"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how to use INNER JOIN to replace department ids with readable department names.",
+  "tutorial": {
+    "explanation": "The employees table stores department_id, but humans usually want to read department_name. INNER JOIN connects rows from two tables when their key columns match.",
+    "syntax": "SELECT e.employee_name, d.department_name FROM employees e INNER JOIN departments d ON e.department_id = d.department_id;",
+    "mental_model": "A join is a row-matching step. For each employee, SQL finds the department row with the same department_id."
+  },
+  "schema": [
+    {
+      "table_name": "employees",
+      "columns": {
+        "employee_id": "INTEGER",
+        "employee_name": "TEXT",
+        "department_id": "INTEGER",
+        "salary": "INTEGER"
+      }
+    },
+    {
+      "table_name": "departments",
+      "columns": {
+        "department_id": "INTEGER",
+        "department_name": "TEXT"
+      }
+    }
+  ],
+  "seed_data": {
+    "employees": [
+      [1, "Alice", 1, 60000],
+      [2, "Bob", 1, 70000],
+      [3, "Cara", 2, 80000],
+      [4, "Dan", 3, 90000]
+    ],
+    "departments": [
+      [1, "Engineering"],
+      [2, "Marketing"],
+      [3, "Support"]
+    ]
+  },
+  "guided_example": {
+    "prompt": "Show each employee with their department name.",
+    "solution_query": "SELECT e.employee_name, d.department_name FROM employees e INNER JOIN departments d ON e.department_id = d.department_id;",
+    "explanation": "The ON clause tells SQL how the two tables are related. Once rows are matched, we can select columns from both tables."
+  },
+  "practice": {
+    "prompt": "Show employee_name, department_name, and salary for employees earning at least 70000.",
+    "expected_query": "SELECT e.employee_name, d.department_name, e.salary FROM employees e INNER JOIN departments d ON e.department_id = d.department_id WHERE e.salary >= 70000;",
+    "expected_columns": ["employee_name", "department_name", "salary"],
+    "order_matters": false
+  },
+  "hints": [
+    "Use employees as one table and departments as the other.",
+    "Join on department_id.",
+    "Add a WHERE filter for salary >= 70000."
+  ]
+}

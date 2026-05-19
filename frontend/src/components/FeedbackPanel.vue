@@ -2,6 +2,7 @@
   <section class="feedback" :class="statusClass" role="status">
     <strong>{{ statusLabel }}</strong>
     <p>{{ message || "Feedback will appear here after running or submitting SQL." }}</p>
+    <pre v-if="error" class="error-detail">{{ error }}</pre>
   </section>
 </template>
 
@@ -14,6 +15,10 @@ const props = defineProps({
     default: "idle",
   },
   message: {
+    type: String,
+    default: "",
+  },
+  error: {
     type: String,
     default: "",
   },
@@ -59,5 +64,15 @@ const statusLabel = computed(() => {
 .status-error {
   border-color: #f3a8a8;
   background: #fff5f5;
+}
+
+.error-detail {
+  overflow-x: auto;
+  border-radius: 8px;
+  background: #3b1111;
+  color: #ffe4e4;
+  margin: 12px 0 0;
+  padding: 10px;
+  white-space: pre-wrap;
 }
 </style>

@@ -1,0 +1,65 @@
+{
+  "id": "boss_problem",
+  "module_id": "module_01_salary_comparison",
+  "type": "boss_problem",
+  "title": "Compare Department Average Salary vs Company Average",
+  "difficulty": "Intermediate",
+  "estimated_minutes": 30,
+  "prerequisites": [
+    "lesson_01_group_by_avg",
+    "lesson_02_join_departments",
+    "lesson_03_case_when",
+    "lesson_04_cte"
+  ],
+  "concepts": ["INNER JOIN", "GROUP BY", "AVG", "CTE", "CASE WHEN"],
+  "prompt": "Compare each department's average salary against the company-wide average salary. Return department_name, department_avg_salary, company_avg_salary, and comparison_result. The comparison_result should be 'higher', 'lower', or 'same'.",
+  "schema": [
+    {
+      "table_name": "employees",
+      "columns": {
+        "employee_id": "INTEGER",
+        "employee_name": "TEXT",
+        "department_id": "INTEGER",
+        "salary": "INTEGER"
+      }
+    },
+    {
+      "table_name": "departments",
+      "columns": {
+        "department_id": "INTEGER",
+        "department_name": "TEXT"
+      }
+    }
+  ],
+  "seed_data": {
+    "employees": [
+      [1, "Alice", 1, 90000],
+      [2, "Bob", 1, 90000],
+      [3, "Cara", 2, 70000],
+      [4, "Dan", 2, 70000],
+      [5, "Eli", 3, 80000],
+      [6, "Faye", 3, 80000]
+    ],
+    "departments": [
+      [1, "Engineering"],
+      [2, "Marketing"],
+      [3, "Support"]
+    ]
+  },
+  "expected_query": "WITH department_averages AS (SELECT d.department_name, AVG(e.salary) AS department_avg_salary FROM employees e INNER JOIN departments d ON e.department_id = d.department_id GROUP BY d.department_name), company_average AS (SELECT AVG(salary) AS company_avg_salary FROM employees) SELECT da.department_name, da.department_avg_salary, ca.company_avg_salary, CASE WHEN da.department_avg_salary > ca.company_avg_salary THEN 'higher' WHEN da.department_avg_salary < ca.company_avg_salary THEN 'lower' ELSE 'same' END AS comparison_result FROM department_averages da CROSS JOIN company_average ca;",
+  "expected_columns": ["department_name", "department_avg_salary", "company_avg_salary", "comparison_result"],
+  "order_matters": false,
+  "explanation": "The solution first calculates one average salary per department, then calculates the company-wide average once. CROSS JOIN makes that one company average available beside every department row. CASE WHEN turns the comparison into a readable label.",
+  "hints": [
+    "Create one CTE for department averages.",
+    "Create another CTE for the company average.",
+    "Use CASE WHEN to compare department_avg_salary with company_avg_salary.",
+    "The company average CTE has one row, so CROSS JOIN is a simple way to attach it to each department."
+  ],
+  "common_mistakes": [
+    "Grouping by employee instead of department.",
+    "Forgetting to join departments before selecting department_name.",
+    "Comparing each employee salary instead of each department average.",
+    "Using WHERE for aggregate filtering when the comparison belongs in SELECT."
+  ]
+}
