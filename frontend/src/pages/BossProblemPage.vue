@@ -29,10 +29,14 @@
           </ul>
         </section>
 
-        <SchemaViewer :tables="bossProblem.schema" />
-        <SampleDataViewer
+        <LeetCodeStatement
+          label="Boss Problem"
+          :title="bossProblem.title"
+          :prompt="bossProblem.prompt"
           :schema="bossProblem.schema"
           :seed-data="bossProblem.seed_data"
+          :expected-result="bossProblem.expected_result"
+          :order-matters="bossProblem.order_matters"
         />
 
         <HintPanel :hints="bossProblem.hints" />
@@ -92,9 +96,8 @@ import { fetchBossProblem, runBossQuery, submitBossQuery } from "../api/roadmap"
 import ConceptBadge from "../components/ConceptBadge.vue";
 import FeedbackPanel from "../components/FeedbackPanel.vue";
 import HintPanel from "../components/HintPanel.vue";
+import LeetCodeStatement from "../components/LeetCodeStatement.vue";
 import ResultTable from "../components/ResultTable.vue";
-import SampleDataViewer from "../components/SampleDataViewer.vue";
-import SchemaViewer from "../components/SchemaViewer.vue";
 import SqlEditor from "../components/SqlEditor.vue";
 
 const route = useRoute();

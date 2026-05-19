@@ -21,14 +21,17 @@
         </div>
 
         <TutorialPanel :tutorial="lesson.tutorial" />
-        <SchemaViewer :tables="lesson.schema" />
-        <SampleDataViewer :schema="lesson.schema" :seed-data="lesson.seed_data" />
         <GuidedExamplePanel :example="lesson.guided_example" />
 
-        <section class="panel">
-          <h2 class="section-title">Practice</h2>
-          <p class="practice-prompt">{{ lesson.practice.prompt }}</p>
-        </section>
+        <LeetCodeStatement
+          label="Practice Problem"
+          :title="lesson.title"
+          :prompt="lesson.practice.prompt"
+          :schema="lesson.schema"
+          :seed-data="lesson.seed_data"
+          :expected-result="lesson.expected_result"
+          :order-matters="lesson.practice.order_matters"
+        />
 
         <HintPanel :hints="lesson.hints" />
       </div>
@@ -79,9 +82,8 @@ import ConceptBadge from "../components/ConceptBadge.vue";
 import FeedbackPanel from "../components/FeedbackPanel.vue";
 import GuidedExamplePanel from "../components/GuidedExamplePanel.vue";
 import HintPanel from "../components/HintPanel.vue";
+import LeetCodeStatement from "../components/LeetCodeStatement.vue";
 import ResultTable from "../components/ResultTable.vue";
-import SampleDataViewer from "../components/SampleDataViewer.vue";
-import SchemaViewer from "../components/SchemaViewer.vue";
 import SqlEditor from "../components/SqlEditor.vue";
 import TutorialPanel from "../components/TutorialPanel.vue";
 
@@ -172,13 +174,6 @@ async function submitQuery() {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.practice-prompt {
-  margin: 0;
-  color: #101828;
-  font-weight: 700;
-  line-height: 1.6;
 }
 
 .actions {

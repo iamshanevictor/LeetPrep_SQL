@@ -40,6 +40,22 @@ def test_lesson_run_endpoint():
     assert response.get_json()["result"]["columns"] == ["department_id", "total_salary"]
 
 
+def test_lesson_detail_includes_expected_output():
+    app = create_app()
+
+    with app.test_client() as client:
+        response = client.get(
+            "/api/modules/module_01_salary_comparison/lessons/lesson_01_group_by_avg"
+        )
+
+    data = response.get_json()
+    assert response.status_code == 200
+    assert data["lesson"]["expected_result"]["columns"] == [
+        "department_id",
+        "total_salary",
+    ]
+
+
 def test_boss_submit_endpoint_correct_answer():
     app = create_app()
     query = (

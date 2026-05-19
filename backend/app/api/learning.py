@@ -43,7 +43,7 @@ def lesson_detail(module_id, lesson_id):
     if lesson is None:
         return jsonify({"error": "Lesson not found"}), 404
 
-    return jsonify({"lesson": lesson})
+    return jsonify({"lesson": _with_expected_result(lesson)})
 
 
 @learning_bp.post("/modules/<module_id>/lessons/<lesson_id>/run")
@@ -80,7 +80,7 @@ def boss_problem_detail(module_id):
     if boss_problem is None:
         return jsonify({"error": "Boss problem not found"}), 404
 
-    return jsonify({"boss_problem": boss_problem})
+    return jsonify({"boss_problem": _with_expected_result(boss_problem)})
 
 
 @learning_bp.post("/modules/<module_id>/boss/run")
@@ -108,3 +108,28 @@ def submit_boss_query(module_id):
 
     query = (request.get_json(silent=True) or {}).get("query", "")
     return jsonify(grade_submission(boss_problem, query))
+
+
+def _with_expected_result(content):
+    """Attach expected output for LeetCode-style examples."""
+    enriched_content = dict(content)
+    expected_query = _get_expected_query(content)
+
+    if expected_query is None:
+        enriched_content["expected_result"] = None
+        return enriched_content
+
+    try:
+        enriched_content["expected_result"] = run_user_query(content, expected_query)
+    except SQLExecutionError as error:
+        enriched_content["expected_result"] = None
+        enriched_content["expected_result_error"] = str(error)
+
+    return enriched_content
+
+
+def _get_expected_query(content):
+    if content.get("type") == "tutorial_practice":
+        return content.get("practice", {}).get("expected_query")
+
+    return content.get("expected_query")
