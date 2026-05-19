@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Flask and local environment
+.env
+backend/.env
+backend/instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Node and Vite
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
