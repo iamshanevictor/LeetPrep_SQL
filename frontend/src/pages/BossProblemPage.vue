@@ -129,7 +129,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 import { fetchBossProblem, runBossQuery, submitBossQuery } from "../api/roadmap";
@@ -142,6 +142,13 @@ import SqlEditor from "../components/learning/SqlEditor.vue";
 import ConceptBadge from "../components/ui/ConceptBadge.vue";
 import ErrorState from "../components/ui/ErrorState.vue";
 import LoadingState from "../components/ui/LoadingState.vue";
+import {
+  getBossKey,
+  getDraftQuery,
+  markBossComplete,
+  saveDraftQuery,
+  setLastVisited,
+} from "../services/progressStorage";
 
 const route = useRoute();
 const bossProblem = ref(null);
@@ -153,16 +160,28 @@ const isLoading = ref(true);
 const isRunning = ref(false);
 const isSubmitting = ref(false);
 const errorMessage = ref("");
+const contentKey = getBossKey(route.params.moduleId);
 
 onMounted(async () => {
   try {
     const data = await fetchBossProblem(route.params.moduleId);
     bossProblem.value = data.boss_problem;
+    query.value = getDraftQuery(contentKey);
+    setLastVisited({
+      type: "boss",
+      moduleId: route.params.moduleId,
+      title: data.boss_problem.title,
+      path: route.fullPath,
+    });
   } catch (error) {
     errorMessage.value = error.message;
   } finally {
     isLoading.value = false;
   }
+});
+
+watch(query, (nextQuery) => {
+  saveDraftQuery(contentKey, nextQuery);
 });
 
 async function runQuery() {
@@ -201,6 +220,10 @@ async function submitQuery() {
       message: data.feedback,
       error: data.error || "",
     };
+
+    if (data.is_correct) {
+      markBossComplete(route.params.moduleId);
+    }
   } catch (error) {
     feedback.value = {
       status: "error",

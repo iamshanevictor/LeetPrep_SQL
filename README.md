@@ -13,6 +13,7 @@ This version includes:
 - Roadmap overview with 10 target SQL modules
 - Complete roadmap content for Modules 1-10
 - Cumulative module metadata showing which earlier modules each module builds on
+- Browser-local progress saving with no account required
 - DuckDB-backed in-memory query execution for learning content
 - Basic grading by comparing user query output with expected query output
 - SQL safety checks that only allow `SELECT` and `WITH` learner queries
@@ -114,6 +115,34 @@ http://localhost:5173
 ```
 
 Copy `frontend/.env.example` to `frontend/.env` if you want to customize the API base URL.
+
+For Vercel, set this environment variable to your Render backend API URL:
+
+```text
+VITE_API_BASE_URL=https://your-render-service.onrender.com/api
+```
+
+## Anonymous Progress Saving
+
+LeetPrep-SQL saves learner progress in the browser with `localStorage`. This avoids accounts and registration while still remembering progress on the same browser and device.
+
+The frontend currently stores:
+
+- Completed lessons
+- Completed boss problems
+- SQL draft queries per lesson or boss problem
+- Last opened learning page
+- Local practice streak dates
+
+This data is not synced across devices. It will be lost if the learner clears browser site data, switches browsers, or uses private browsing.
+
+When deployed, the recommended setup is:
+
+```text
+Frontend: Vercel
+Backend API: Render
+Progress: Browser localStorage
+```
 
 ## Open the Roadmap
 
@@ -229,6 +258,7 @@ When revising or adding content, keep `lessons_count` and `builds_on_modules` in
 - `frontend/src/pages/RoadmapPage.vue` for the roadmap UI
 - `frontend/src/pages/LessonPage.vue` for the lesson workbench
 - `frontend/src/api/roadmap.js` for frontend/backend learning API calls
+- `frontend/src/services/progressStorage.js` for account-free browser progress
 
 ## Next Planned Features
 

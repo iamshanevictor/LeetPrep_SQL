@@ -12,12 +12,18 @@
       </p>
     </div>
 
+    <span
+      v-if="bossProblem && status === 'Completed'"
+      class="badge badge-easy"
+    >
+      Completed
+    </span>
     <RouterLink
       v-if="bossProblem"
       class="button button-primary"
       :to="`/roadmap/${moduleId || bossProblem.module_id}/boss`"
     >
-      Start Boss
+      {{ status === "Completed" ? "Review Boss" : "Start Boss" }}
     </RouterLink>
     <span v-else class="badge">Locked</span>
   </article>
@@ -36,6 +42,10 @@ defineProps({
   moduleId: {
     type: String,
     default: "",
+  },
+  status: {
+    type: String,
+    default: "Not Started",
   },
 });
 </script>

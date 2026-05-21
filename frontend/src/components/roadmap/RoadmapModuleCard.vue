@@ -6,7 +6,12 @@
       <div class="module-title-line">
         <h2>{{ module.title }}</h2>
         <DifficultyBadge :difficulty="module.difficulty" />
-        <span class="badge">{{ status }}</span>
+        <span
+          class="badge"
+          :class="{ 'badge-easy': status === 'Completed', 'badge-medium': status === 'In Progress' }"
+        >
+          {{ status }}
+        </span>
       </div>
       <p>{{ module.goal }}</p>
       <div class="concept-list">

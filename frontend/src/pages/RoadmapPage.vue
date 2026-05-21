@@ -26,6 +26,7 @@
           v-for="module in modules"
           :key="module.id"
           :module="module"
+          :status="getRoadmapModuleStatus(module, progress)"
         />
       </main>
 
@@ -42,11 +43,11 @@
           </div>
           <div>
             <dt>Status</dt>
-            <dd>Foundation</dd>
+            <dd>{{ progressSummary.completedModules }} complete</dd>
           </div>
         </dl>
         <p>
-          Start with Module 1, then add future lesson JSON under each planned module.
+          Progress is saved in this browser with no account required.
         </p>
       </aside>
     </div>
@@ -59,7 +60,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
 import { fetchRoadmap } from "../api/roadmap";
 import PageHeader from "../components/layout/PageHeader.vue";
@@ -67,17 +68,30 @@ import RoadmapModuleCard from "../components/roadmap/RoadmapModuleCard.vue";
 import EmptyState from "../components/ui/EmptyState.vue";
 import ErrorState from "../components/ui/ErrorState.vue";
 import LoadingState from "../components/ui/LoadingState.vue";
+import {
+  getProgressSummary,
+  getRoadmapModuleStatus,
+  loadProgress,
+  subscribeProgress,
+} from "../services/progressStorage";
 
 const roadmap = ref(null);
 const isLoading = ref(true);
 const errorMessage = ref("");
+const progress = ref(loadProgress());
+let unsubscribeProgress = null;
 
 const modules = computed(() => roadmap.value?.modules || []);
 const lessonCount = computed(() =>
   modules.value.reduce((total, module) => total + (module.lessons_count || 0), 0),
 );
+const progressSummary = computed(() => getProgressSummary(modules.value, progress.value));
 
 onMounted(async () => {
+  unsubscribeProgress = subscribeProgress((nextProgress) => {
+    progress.value = nextProgress;
+  });
+
   try {
     roadmap.value = await fetchRoadmap();
   } catch (error) {
@@ -85,6 +99,10 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
+});
+
+onUnmounted(() => {
+  unsubscribeProgress?.();
 });
 </script>
 

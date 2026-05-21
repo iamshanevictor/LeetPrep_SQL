@@ -118,7 +118,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 import { fetchLesson, runLessonQuery, submitLessonQuery } from "../api/roadmap";
@@ -133,6 +133,13 @@ import TutorialPanel from "../components/learning/TutorialPanel.vue";
 import ConceptBadge from "../components/ui/ConceptBadge.vue";
 import ErrorState from "../components/ui/ErrorState.vue";
 import LoadingState from "../components/ui/LoadingState.vue";
+import {
+  getDraftQuery,
+  getLessonKey,
+  markLessonComplete,
+  saveDraftQuery,
+  setLastVisited,
+} from "../services/progressStorage";
 
 const route = useRoute();
 const lesson = ref(null);
@@ -144,16 +151,29 @@ const isLoading = ref(true);
 const isRunning = ref(false);
 const isSubmitting = ref(false);
 const errorMessage = ref("");
+const contentKey = getLessonKey(route.params.moduleId, route.params.lessonId);
 
 onMounted(async () => {
   try {
     const data = await fetchLesson(route.params.moduleId, route.params.lessonId);
     lesson.value = data.lesson;
+    query.value = getDraftQuery(contentKey);
+    setLastVisited({
+      type: "lesson",
+      moduleId: route.params.moduleId,
+      lessonId: route.params.lessonId,
+      title: data.lesson.title,
+      path: route.fullPath,
+    });
   } catch (error) {
     errorMessage.value = error.message;
   } finally {
     isLoading.value = false;
   }
+});
+
+watch(query, (nextQuery) => {
+  saveDraftQuery(contentKey, nextQuery);
 });
 
 async function runQuery() {
@@ -201,6 +221,10 @@ async function submitQuery() {
       message: data.feedback,
       error: data.error || "",
     };
+
+    if (data.is_correct) {
+      markLessonComplete(route.params.moduleId, route.params.lessonId);
+    }
   } catch (error) {
     feedback.value = {
       status: "error",

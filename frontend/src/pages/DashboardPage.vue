@@ -7,20 +7,20 @@
 
     <div class="stat-strip">
       <StatCard label="Problems" :value="problemCount" helper="available" />
-      <StatCard label="Lessons" :value="lessonCount" helper="authored" />
-      <StatCard label="Streak" value="0d" helper="placeholder" />
-      <StatCard label="Modules" :value="moduleCount" helper="planned" />
+      <StatCard label="Lessons" :value="lessonProgressLabel" helper="completed / authored" />
+      <StatCard label="Streak" :value="`${progressSummary.currentStreak}d`" helper="local browser" />
+      <StatCard label="Modules" :value="moduleProgressLabel" helper="completed / available" />
     </div>
 
     <div class="dashboard-layout">
       <section class="card continue-panel">
         <div class="card-header">
           <h2 class="card-title">Continue learning</h2>
-          <p class="card-description">Module 1 is ready: aggregation, joins, CASE WHEN, and CTEs.</p>
+          <p class="card-description">{{ continueDescription }}</p>
         </div>
         <div class="actions">
-          <RouterLink class="button button-primary" to="/roadmap/module_01_salary_comparison">
-            Continue Module 1
+          <RouterLink class="button button-primary" :to="continueTo">
+            {{ continueLabel }}
           </RouterLink>
           <RouterLink class="button button-secondary" to="/roadmap">
             Roadmap
@@ -56,17 +56,24 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
 import { fetchProblems } from "../api/problems";
 import { fetchRoadmap } from "../api/roadmap";
 import PageHeader from "../components/layout/PageHeader.vue";
 import ErrorState from "../components/ui/ErrorState.vue";
 import StatCard from "../components/ui/StatCard.vue";
+import {
+  getProgressSummary,
+  loadProgress,
+  subscribeProgress,
+} from "../services/progressStorage";
 
 const roadmap = ref(null);
 const problems = ref([]);
 const errorMessage = ref("");
+const progress = ref(loadProgress());
+let unsubscribeProgress = null;
 
 const modules = computed(() => roadmap.value?.modules || []);
 const moduleCount = computed(() => modules.value.length);
@@ -74,8 +81,38 @@ const lessonCount = computed(() =>
   modules.value.reduce((total, module) => total + (module.lessons_count || 0), 0),
 );
 const problemCount = computed(() => problems.value.length);
+const progressSummary = computed(() => getProgressSummary(modules.value, progress.value));
+const lessonProgressLabel = computed(
+  () => `${progressSummary.value.completedLessons}/${lessonCount.value}`,
+);
+const moduleProgressLabel = computed(
+  () => `${progressSummary.value.completedModules}/${moduleCount.value}`,
+);
+const continueTo = computed(() => {
+  const lastVisited = progressSummary.value.lastVisited;
+  if (lastVisited?.path) {
+    return lastVisited.path;
+  }
+
+  return "/roadmap/module_01_salary_comparison";
+});
+const continueLabel = computed(() =>
+  progressSummary.value.lastVisited ? "Continue Learning" : "Start Module 1",
+);
+const continueDescription = computed(() => {
+  const lastVisited = progressSummary.value.lastVisited;
+  if (lastVisited?.title) {
+    return `Last opened: ${lastVisited.title}`;
+  }
+
+  return "Start with Module 1: aggregation, joins, CASE WHEN, and CTEs.";
+});
 
 onMounted(async () => {
+  unsubscribeProgress = subscribeProgress((nextProgress) => {
+    progress.value = nextProgress;
+  });
+
   try {
     const [roadmapData, problemData] = await Promise.all([
       fetchRoadmap(),
@@ -86,6 +123,10 @@ onMounted(async () => {
   } catch (error) {
     errorMessage.value = error.message;
   }
+});
+
+onUnmounted(() => {
+  unsubscribeProgress?.();
 });
 </script>
 

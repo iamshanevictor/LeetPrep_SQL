@@ -8,7 +8,9 @@
       <div class="lesson-title-line">
         <h3>{{ lesson.title }}</h3>
         <span class="badge">{{ lesson.estimated_minutes || 10 }} min</span>
-        <span class="badge">Not Started</span>
+        <span class="badge" :class="{ 'badge-easy': status === 'Completed' }">
+          {{ status }}
+        </span>
       </div>
       <p>{{ lesson.learning_objective }}</p>
       <div class="concept-list">
@@ -34,6 +36,10 @@ defineProps({
   index: {
     type: Number,
     default: 0,
+  },
+  status: {
+    type: String,
+    default: "Not Started",
   },
 });
 </script>

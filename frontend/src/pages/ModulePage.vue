@@ -14,7 +14,12 @@
           </div>
           <div class="header-meta">
             <DifficultyBadge :difficulty="moduleData.difficulty" />
-            <span class="badge">Not Started</span>
+            <span
+              class="badge"
+              :class="{ 'badge-easy': moduleStatus === 'Completed', 'badge-medium': moduleStatus === 'In Progress' }"
+            >
+              {{ moduleStatus }}
+            </span>
           </div>
         </header>
 
@@ -40,6 +45,7 @@
               :key="lesson.id"
               :lesson="lesson"
               :index="index"
+              :status="getLessonStatus(moduleData.id, lesson.id, progress)"
             />
           </div>
           <EmptyState
@@ -64,7 +70,7 @@
             </div>
             <div>
               <dt>Progress</dt>
-              <dd>0%</dd>
+              <dd>{{ moduleProgressPercent }}%</dd>
             </div>
           </dl>
         </section>
@@ -82,6 +88,7 @@
           :module="moduleData"
           :module-id="moduleData.id"
           :boss-problem="moduleData.boss_problem"
+          :status="getBossStatus(moduleData.id, progress)"
         />
       </aside>
     </div>
@@ -89,7 +96,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 import { fetchModule } from "../api/roadmap";
@@ -100,17 +107,54 @@ import DifficultyBadge from "../components/ui/DifficultyBadge.vue";
 import EmptyState from "../components/ui/EmptyState.vue";
 import ErrorState from "../components/ui/ErrorState.vue";
 import LoadingState from "../components/ui/LoadingState.vue";
+import {
+  getBossStatus,
+  getLessonStatus,
+  getModuleStatus,
+  loadProgress,
+  subscribeProgress,
+} from "../services/progressStorage";
 
 const route = useRoute();
 const moduleData = ref(null);
 const isLoading = ref(true);
 const errorMessage = ref("");
+const progress = ref(loadProgress());
+let unsubscribeProgress = null;
 
 const buildsOnModules = computed(() =>
   (moduleData.value?.builds_on_modules || []).map((moduleId) => formatModuleName(moduleId)),
 );
+const moduleStatus = computed(() =>
+  moduleData.value ? getModuleStatus(moduleData.value, progress.value) : "Not Started",
+);
+const moduleProgressPercent = computed(() => {
+  if (!moduleData.value) {
+    return 0;
+  }
+
+  const lessonTotal = moduleData.value.lessons?.length || 0;
+  const bossTotal = moduleData.value.boss_problem ? 1 : 0;
+  const total = lessonTotal + bossTotal;
+
+  if (total === 0) {
+    return 0;
+  }
+
+  const completedLessons = (moduleData.value.lessons || []).filter(
+    (lesson) => getLessonStatus(moduleData.value.id, lesson.id, progress.value) === "Completed",
+  ).length;
+  const completedBoss =
+    getBossStatus(moduleData.value.id, progress.value) === "Completed" ? 1 : 0;
+
+  return Math.round(((completedLessons + completedBoss) / total) * 100);
+});
 
 onMounted(async () => {
+  unsubscribeProgress = subscribeProgress((nextProgress) => {
+    progress.value = nextProgress;
+  });
+
   try {
     const data = await fetchModule(route.params.moduleId);
     moduleData.value = data.module;
@@ -119,6 +163,10 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
+});
+
+onUnmounted(() => {
+  unsubscribeProgress?.();
 });
 
 function formatModuleName(moduleId) {
