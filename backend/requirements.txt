@@ -5,3 +5,4 @@ python-dotenv
 duckdb
 pandas
 pytest
+gunicorn
