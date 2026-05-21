@@ -1,0 +1,50 @@
+{
+  "id": "lesson_03_min_distance",
+  "module_id": "module_09_shortest_distance",
+  "order": 3,
+  "type": "tutorial_practice",
+  "title": "Find the Minimum Distance",
+  "difficulty": "Intermediate",
+  "concepts": ["MIN", "CROSS JOIN", "ROUND"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how to reduce all calculated point-pair distances down to the shortest one.",
+  "tutorial": {
+    "explanation": "After generating all unique pairs and calculating their distances, MIN picks the smallest distance. This is a common pattern: generate candidates first, then aggregate the candidates.",
+    "syntax": "SELECT MIN(distance) FROM calculated_distances;",
+    "mental_model": "The pair-generation step creates the search space. MIN chooses the best candidate from that space."
+  },
+  "schema": [
+    {
+      "table_name": "points",
+      "columns": {
+        "id": "INTEGER",
+        "x": "INTEGER",
+        "y": "INTEGER"
+      }
+    }
+  ],
+  "seed_data": {
+    "points": [
+      [1, 0, 0],
+      [2, 3, 4],
+      [3, 6, 8],
+      [4, 1, 1]
+    ]
+  },
+  "guided_example": {
+    "prompt": "Find the shortest raw distance between any two points.",
+    "solution_query": "SELECT MIN(SQRT(POWER(p1.x - p2.x, 2) + POWER(p1.y - p2.y, 2))) AS shortest_distance FROM points p1 CROSS JOIN points p2 WHERE p1.id < p2.id;",
+    "explanation": "The formula calculates a distance for each unique pair. MIN returns the smallest value among those distances."
+  },
+  "practice": {
+    "prompt": "Find the shortest distance between any two points, rounded to 2 decimals.",
+    "expected_query": "SELECT ROUND(MIN(SQRT(POWER(p1.x - p2.x, 2) + POWER(p1.y - p2.y, 2))), 2) AS shortest_distance FROM points p1 CROSS JOIN points p2 WHERE p1.id < p2.id;",
+    "expected_columns": ["shortest_distance"],
+    "order_matters": false
+  },
+  "hints": [
+    "Start from the unique pair query.",
+    "Wrap the distance expression in MIN.",
+    "Round the final minimum distance to 2 decimals."
+  ]
+}

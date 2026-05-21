@@ -1,0 +1,34 @@
+{
+  "id": "lesson_02_rank_vs_dense_rank",
+  "module_id": "module_07_top_3_salaries",
+  "order": 2,
+  "type": "tutorial_practice",
+  "title": "Understand RANK vs DENSE_RANK",
+  "difficulty": "Intermediate",
+  "concepts": ["RANK", "DENSE_RANK", "Ties"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn why DENSE_RANK is useful when tied salaries should share a rank without gaps.",
+  "tutorial": {
+    "explanation": "RANK leaves gaps after ties, while DENSE_RANK does not. Top salary problems usually use DENSE_RANK when tied salaries should all count.",
+    "syntax": "DENSE_RANK() OVER (ORDER BY salary DESC) AS dense_rank",
+    "mental_model": "DENSE_RANK ranks distinct salary values, not individual employees."
+  },
+  "schema": [
+    {"table_name": "employees", "columns": {"employee_id": "INTEGER", "employee_name": "TEXT", "salary": "INTEGER"}}
+  ],
+  "seed_data": {
+    "employees": [[1, "Alice", 90000], [2, "Bob", 85000], [3, "Cara", 85000], [4, "Dan", 70000]]
+  },
+  "guided_example": {
+    "prompt": "Show dense salary ranks.",
+    "solution_query": "SELECT employee_name, salary, DENSE_RANK() OVER (ORDER BY salary DESC) AS dense_rank FROM employees;",
+    "explanation": "Bob and Cara tie for dense rank 2, and Dan becomes dense rank 3."
+  },
+  "practice": {
+    "prompt": "Return employee_name, salary, and dense_rank by salary descending.",
+    "expected_query": "SELECT employee_name, salary, DENSE_RANK() OVER (ORDER BY salary DESC) AS dense_rank FROM employees;",
+    "expected_columns": ["employee_name", "salary", "dense_rank"],
+    "order_matters": false
+  },
+  "hints": ["Use DENSE_RANK().", "Put ORDER BY salary DESC inside OVER.", "Alias the result as dense_rank."]
+}

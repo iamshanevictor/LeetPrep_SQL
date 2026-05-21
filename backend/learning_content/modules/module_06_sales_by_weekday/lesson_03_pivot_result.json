@@ -1,0 +1,36 @@
+{
+  "id": "lesson_03_pivot_result",
+  "module_id": "module_06_sales_by_weekday",
+  "order": 3,
+  "type": "tutorial_practice",
+  "title": "Pivot Weekdays into Columns",
+  "difficulty": "Intermediate",
+  "concepts": ["JOIN", "GROUP BY", "Pivot aggregation"],
+  "estimated_minutes": 20,
+  "learning_objective": "Learn how to create one output row per category with weekday columns.",
+  "tutorial": {
+    "explanation": "A pivot-style SQL result uses GROUP BY for rows and conditional aggregation for columns.",
+    "syntax": "SELECT category, SUM(CASE WHEN dow = 1 THEN quantity ELSE 0 END) AS Monday FROM ... GROUP BY category;",
+    "mental_model": "GROUP BY chooses the row grain. Each SUM(CASE WHEN ...) creates one output column."
+  },
+  "schema": [
+    {"table_name": "orders", "columns": {"order_id": "INTEGER", "item_id": "INTEGER", "order_date": "TEXT", "quantity": "INTEGER"}},
+    {"table_name": "items", "columns": {"item_id": "INTEGER", "item_category": "TEXT"}}
+  ],
+  "seed_data": {
+    "orders": [[1, 1, "2026-01-05", 2], [2, 2, "2026-01-06", 3], [3, 1, "2026-01-06", 4]],
+    "items": [[1, "Book"], [2, "Game"]]
+  },
+  "guided_example": {
+    "prompt": "Return Monday and Tuesday units by category.",
+    "solution_query": "SELECT i.item_category, SUM(CASE WHEN EXTRACT(DOW FROM CAST(o.order_date AS DATE)) = 1 THEN o.quantity ELSE 0 END) AS Monday, SUM(CASE WHEN EXTRACT(DOW FROM CAST(o.order_date AS DATE)) = 2 THEN o.quantity ELSE 0 END) AS Tuesday FROM orders o INNER JOIN items i ON o.item_id = i.item_id GROUP BY i.item_category;",
+    "explanation": "The join adds categories, GROUP BY creates one row per category, and each CASE expression builds a day column."
+  },
+  "practice": {
+    "prompt": "Return item_category and Monday units by category.",
+    "expected_query": "SELECT i.item_category, SUM(CASE WHEN EXTRACT(DOW FROM CAST(o.order_date AS DATE)) = 1 THEN o.quantity ELSE 0 END) AS Monday FROM orders o INNER JOIN items i ON o.item_id = i.item_id GROUP BY i.item_category;",
+    "expected_columns": ["item_category", "Monday"],
+    "order_matters": false
+  },
+  "hints": ["Join orders to items.", "Group by item_category.", "Use SUM(CASE WHEN DOW = 1 THEN quantity ELSE 0 END)."]
+}

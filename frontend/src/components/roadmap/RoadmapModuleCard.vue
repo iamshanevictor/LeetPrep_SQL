@@ -22,6 +22,7 @@
     <div class="module-meta">
       <span>{{ module.lessons_count || 0 }} lessons</span>
       <span>Boss</span>
+      <span v-if="buildsOnCount">Builds on {{ buildsOnCount }}</span>
     </div>
   </RouterLink>
 </template>
@@ -47,6 +48,7 @@ const visibleConcepts = computed(() => (props.module.concepts || []).slice(0, 4)
 const hiddenConceptCount = computed(() =>
   Math.max((props.module.concepts || []).length - visibleConcepts.value.length, 0),
 );
+const buildsOnCount = computed(() => (props.module.builds_on_modules || []).length);
 </script>
 
 <style scoped>

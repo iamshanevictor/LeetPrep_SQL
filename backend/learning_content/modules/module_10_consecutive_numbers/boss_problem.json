@@ -1,0 +1,58 @@
+{
+  "id": "boss_problem",
+  "module_id": "module_10_consecutive_numbers",
+  "type": "boss_problem",
+  "title": "Consecutive Numbers",
+  "difficulty": "Advanced",
+  "estimated_minutes": 25,
+  "prerequisites": [
+    "lesson_01_lag",
+    "lesson_02_lead",
+    "lesson_03_three_consecutive"
+  ],
+  "concepts": ["LAG", "LEAD", "Window Functions", "Consecutive Row Comparison", "DISTINCT"],
+  "prompt": "Find all numbers that appear at least three times consecutively in the logs table. Return one column named ConsecutiveNums.",
+  "schema": [
+    {
+      "table_name": "logs",
+      "columns": {
+        "id": "INTEGER",
+        "num": "INTEGER"
+      }
+    }
+  ],
+  "seed_data": {
+    "logs": [
+      [1, 1],
+      [2, 1],
+      [3, 1],
+      [4, 2],
+      [5, 1],
+      [6, 2],
+      [7, 2],
+      [8, 2],
+      [9, 3],
+      [10, 3],
+      [11, 4],
+      [12, 4],
+      [13, 4],
+      [14, 4]
+    ]
+  },
+  "expected_query": "WITH neighbors AS (SELECT num, LAG(num) OVER (ORDER BY id) AS prev_num, LEAD(num) OVER (ORDER BY id) AS next_num FROM logs) SELECT DISTINCT num AS ConsecutiveNums FROM neighbors WHERE num = prev_num AND num = next_num;",
+  "expected_columns": ["ConsecutiveNums"],
+  "order_matters": false,
+  "explanation": "Use LAG and LEAD to compare each row to its immediate neighbors. If both neighbors have the same num as the current row, that number appears in a three-row consecutive streak. DISTINCT keeps each qualifying number only once.",
+  "hints": [
+    "Order rows by id before using LAG and LEAD.",
+    "The current row can be the middle of a three-row sequence.",
+    "Filter where num equals both prev_num and next_num.",
+    "Use DISTINCT to avoid duplicate output values."
+  ],
+  "common_mistakes": [
+    "Grouping by num without checking consecutive order.",
+    "Checking total frequency instead of adjacent rows.",
+    "Forgetting DISTINCT when a number appears four or more times in a row.",
+    "Using only LAG or only LEAD and missing the three-row pattern."
+  ]
+}

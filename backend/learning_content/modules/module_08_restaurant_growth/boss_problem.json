@@ -1,0 +1,23 @@
+{
+  "id": "boss_problem",
+  "module_id": "module_08_restaurant_growth",
+  "type": "boss_problem",
+  "title": "Restaurant Growth Moving Average",
+  "difficulty": "Intermediate to Advanced",
+  "estimated_minutes": 40,
+  "prerequisites": ["module_01_salary_comparison", "module_05_contiguous_dates", "module_07_top_3_salaries", "lesson_01_daily_total", "lesson_02_running_total", "lesson_03_moving_average"],
+  "concepts": ["Date aggregation", "Window frame", "ROWS BETWEEN", "Moving average"],
+  "prompt": "Compute the 7-day moving sum and average of customer payments. Return visited_on, amount, and average_amount for days with a complete 7-day window.",
+  "schema": [
+    {"table_name": "customer", "columns": {"customer_id": "INTEGER", "visited_on": "TEXT", "amount": "INTEGER"}}
+  ],
+  "seed_data": {
+    "customer": [[1, "2026-01-01", 100], [2, "2026-01-02", 80], [3, "2026-01-03", 120], [4, "2026-01-04", 90], [5, "2026-01-05", 110], [6, "2026-01-06", 70], [7, "2026-01-07", 130], [8, "2026-01-08", 140], [9, "2026-01-09", 60]]
+  },
+  "expected_query": "WITH daily AS (SELECT visited_on, SUM(amount) AS daily_amount FROM customer GROUP BY visited_on), windowed AS (SELECT visited_on, SUM(daily_amount) OVER (ORDER BY visited_on ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS amount, ROUND(AVG(daily_amount) OVER (ORDER BY visited_on ROWS BETWEEN 6 PRECEDING AND CURRENT ROW), 2) AS average_amount, ROW_NUMBER() OVER (ORDER BY visited_on) AS rn FROM daily) SELECT visited_on, amount, average_amount FROM windowed WHERE rn >= 7;",
+  "expected_columns": ["visited_on", "amount", "average_amount"],
+  "order_matters": false,
+  "explanation": "Aggregate payments per day, calculate the 7-row window, then remove rows before a full 7-day window exists.",
+  "hints": ["Build daily totals first.", "Use ROWS BETWEEN 6 PRECEDING AND CURRENT ROW.", "Filter to rn >= 7 for complete windows."],
+  "common_mistakes": ["Averaging raw customer rows instead of daily totals.", "Including incomplete early windows.", "Using a running average instead of a fixed 7-day frame."]
+}

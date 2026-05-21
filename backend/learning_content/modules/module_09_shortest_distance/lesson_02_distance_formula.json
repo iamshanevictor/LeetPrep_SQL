@@ -1,0 +1,49 @@
+{
+  "id": "lesson_02_distance_formula",
+  "module_id": "module_09_shortest_distance",
+  "order": 2,
+  "type": "tutorial_practice",
+  "title": "Calculate Euclidean Distance",
+  "difficulty": "Intermediate",
+  "concepts": ["POWER", "SQRT", "ROUND", "Math Expressions"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how to translate the two-dimensional distance formula into SQL.",
+  "tutorial": {
+    "explanation": "The distance between two points is the square root of the squared x difference plus the squared y difference. SQL can calculate this with arithmetic, POWER, SQRT, and ROUND.",
+    "syntax": "SELECT SQRT(POWER(p1.x - p2.x, 2) + POWER(p1.y - p2.y, 2)) AS distance FROM points p1 CROSS JOIN points p2 WHERE p1.id < p2.id;",
+    "mental_model": "Treat each point pair like one row. Inside that row, calculate the x difference, y difference, square them, add them, and take the square root."
+  },
+  "schema": [
+    {
+      "table_name": "points",
+      "columns": {
+        "id": "INTEGER",
+        "x": "INTEGER",
+        "y": "INTEGER"
+      }
+    }
+  ],
+  "seed_data": {
+    "points": [
+      [1, 0, 0],
+      [2, 3, 4],
+      [3, 6, 8]
+    ]
+  },
+  "guided_example": {
+    "prompt": "Calculate the distance for every unique point pair.",
+    "solution_query": "SELECT p1.id AS point_a, p2.id AS point_b, SQRT(POWER(p1.x - p2.x, 2) + POWER(p1.y - p2.y, 2)) AS distance FROM points p1 CROSS JOIN points p2 WHERE p1.id < p2.id ORDER BY point_a, point_b;",
+    "explanation": "Each unique pair becomes one row, and the distance formula is calculated for that row."
+  },
+  "practice": {
+    "prompt": "Return each unique point pair and its distance rounded to 2 decimals.",
+    "expected_query": "SELECT p1.id AS point_a, p2.id AS point_b, ROUND(SQRT(POWER(p1.x - p2.x, 2) + POWER(p1.y - p2.y, 2)), 2) AS distance FROM points p1 CROSS JOIN points p2 WHERE p1.id < p2.id ORDER BY point_a, point_b;",
+    "expected_columns": ["point_a", "point_b", "distance"],
+    "order_matters": true
+  },
+  "hints": [
+    "Use ROUND(expression, 2).",
+    "The squared x difference is POWER(p1.x - p2.x, 2).",
+    "Keep p1.id < p2.id so each pair appears once."
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "id": "lesson_03_date_row_number_grouping",
+  "module_id": "module_05_contiguous_dates",
+  "order": 3,
+  "type": "tutorial_practice",
+  "title": "Group Continuous Dates",
+  "difficulty": "Intermediate",
+  "concepts": ["ROW_NUMBER", "Date grouping", "MIN", "MAX"],
+  "estimated_minutes": 20,
+  "learning_objective": "Learn how date minus row_number groups consecutive dates.",
+  "tutorial": {
+    "explanation": "Like the id - row_number trick, date - row_number stays constant for continuous dates inside each status.",
+    "syntax": "CAST(status_date AS DATE) - CAST(ROW_NUMBER() OVER (PARTITION BY period_state ORDER BY status_date) AS INTEGER)",
+    "mental_model": "If dates increase one day at a time and row numbers increase one at a time, subtracting row number creates a stable group key."
+  },
+  "schema": [
+    {"table_name": "timeline", "columns": {"period_state": "TEXT", "status_date": "TEXT"}}
+  ],
+  "seed_data": {
+    "timeline": [["failed", "2026-01-01"], ["failed", "2026-01-02"], ["succeeded", "2026-01-03"], ["succeeded", "2026-01-04"], ["failed", "2026-01-05"]]
+  },
+  "guided_example": {
+    "prompt": "Find start and end date for each continuous status interval.",
+    "solution_query": "WITH numbered AS (SELECT period_state, status_date, CAST(status_date AS DATE) - CAST(ROW_NUMBER() OVER (PARTITION BY period_state ORDER BY status_date) AS INTEGER) AS group_key FROM timeline) SELECT period_state, MIN(status_date) AS start_date, MAX(status_date) AS end_date FROM numbered GROUP BY period_state, group_key;",
+    "explanation": "The group key stays constant inside continuous dates for the same period_state."
+  },
+  "practice": {
+    "prompt": "Return period_state, start_date, and end_date for continuous date groups.",
+    "expected_query": "WITH numbered AS (SELECT period_state, status_date, CAST(status_date AS DATE) - CAST(ROW_NUMBER() OVER (PARTITION BY period_state ORDER BY status_date) AS INTEGER) AS group_key FROM timeline) SELECT period_state, MIN(status_date) AS start_date, MAX(status_date) AS end_date FROM numbered GROUP BY period_state, group_key;",
+    "expected_columns": ["period_state", "start_date", "end_date"],
+    "order_matters": false
+  },
+  "hints": ["Partition row numbers by period_state.", "Order row numbers by status_date.", "Group by period_state and the computed key."]
+}

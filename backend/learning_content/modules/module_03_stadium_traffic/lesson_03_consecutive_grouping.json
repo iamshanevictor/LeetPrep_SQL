@@ -1,0 +1,34 @@
+{
+  "id": "lesson_03_consecutive_grouping",
+  "module_id": "module_03_stadium_traffic",
+  "order": 3,
+  "type": "tutorial_practice",
+  "title": "Group Consecutive IDs",
+  "difficulty": "Intermediate",
+  "concepts": ["CTE", "ROW_NUMBER", "id - row_number"],
+  "estimated_minutes": 20,
+  "learning_objective": "Learn the id minus row_number trick for consecutive groups.",
+  "tutorial": {
+    "explanation": "For consecutive ids, id - row_number stays constant inside a continuous run. That constant can be used as a group key.",
+    "syntax": "WITH numbered AS (SELECT id, ROW_NUMBER() OVER (ORDER BY id) AS rn FROM stadium) SELECT id, id - rn AS group_key FROM numbered;",
+    "mental_model": "If ids are consecutive, both id and rn increase by 1 together, so their difference does not change."
+  },
+  "schema": [
+    {"table_name": "stadium", "columns": {"id": "INTEGER", "visit_date": "TEXT", "people": "INTEGER"}}
+  ],
+  "seed_data": {
+    "stadium": [[2, "2026-01-02", 120], [3, "2026-01-03", 130], [4, "2026-01-04", 140], [7, "2026-01-07", 160]]
+  },
+  "guided_example": {
+    "prompt": "Compute a group key for consecutive ids.",
+    "solution_query": "WITH numbered AS (SELECT id, visit_date, people, ROW_NUMBER() OVER (ORDER BY id) AS rn FROM stadium) SELECT id, id - rn AS group_key FROM numbered;",
+    "explanation": "Rows 2, 3, and 4 get the same group key because they are consecutive."
+  },
+  "practice": {
+    "prompt": "Return group_key and count of rows in each consecutive group.",
+    "expected_query": "WITH numbered AS (SELECT id, ROW_NUMBER() OVER (ORDER BY id) AS rn FROM stadium) SELECT id - rn AS group_key, COUNT(*) AS rows_in_group FROM numbered GROUP BY id - rn;",
+    "expected_columns": ["group_key", "rows_in_group"],
+    "order_matters": false
+  },
+  "hints": ["Create a numbered CTE.", "Use id - rn as the grouping key.", "COUNT rows per key."]
+}

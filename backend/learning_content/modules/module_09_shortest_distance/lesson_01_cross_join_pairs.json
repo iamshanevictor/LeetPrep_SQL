@@ -1,0 +1,49 @@
+{
+  "id": "lesson_01_cross_join_pairs",
+  "module_id": "module_09_shortest_distance",
+  "order": 1,
+  "type": "tutorial_practice",
+  "title": "Generate Point Pairs with CROSS JOIN",
+  "difficulty": "Intermediate",
+  "concepts": ["CROSS JOIN", "Pair Generation", "Filtering"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how to generate possible pairs from one table while avoiding self-pairs.",
+  "tutorial": {
+    "explanation": "A CROSS JOIN matches every row from the first table with every row from the second table. For distance problems, that gives every possible point pair. You then filter out rows where a point is paired with itself.",
+    "syntax": "SELECT p1.id AS point_a, p2.id AS point_b FROM points p1 CROSS JOIN points p2 WHERE p1.id <> p2.id;",
+    "mental_model": "CROSS JOIN creates the full pairing grid. The WHERE clause removes combinations you do not want."
+  },
+  "schema": [
+    {
+      "table_name": "points",
+      "columns": {
+        "id": "INTEGER",
+        "x": "INTEGER",
+        "y": "INTEGER"
+      }
+    }
+  ],
+  "seed_data": {
+    "points": [
+      [1, 0, 0],
+      [2, 3, 4],
+      [3, 6, 8]
+    ]
+  },
+  "guided_example": {
+    "prompt": "Generate all point pairs where the two point IDs are different.",
+    "solution_query": "SELECT p1.id AS point_a, p2.id AS point_b FROM points p1 CROSS JOIN points p2 WHERE p1.id <> p2.id;",
+    "explanation": "The CROSS JOIN creates every possible pair. The filter removes rows where point_a and point_b are the same point."
+  },
+  "practice": {
+    "prompt": "Generate each unique point pair only once by keeping pairs where the first point ID is smaller than the second point ID.",
+    "expected_query": "SELECT p1.id AS point_a, p2.id AS point_b FROM points p1 CROSS JOIN points p2 WHERE p1.id < p2.id ORDER BY point_a, point_b;",
+    "expected_columns": ["point_a", "point_b"],
+    "order_matters": true
+  },
+  "hints": [
+    "Use two aliases for the same table: p1 and p2.",
+    "Use CROSS JOIN to generate all combinations.",
+    "Use p1.id < p2.id to remove self-pairs and mirrored duplicates."
+  ]
+}

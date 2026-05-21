@@ -1,0 +1,25 @@
+{
+  "id": "boss_problem",
+  "module_id": "module_04_transactions_per_visit",
+  "type": "boss_problem",
+  "title": "Number of Transactions per Visit",
+  "difficulty": "Intermediate",
+  "estimated_minutes": 35,
+  "prerequisites": ["module_01_salary_comparison", "lesson_01_count_transactions", "lesson_02_left_join_zero_transactions", "lesson_03_coalesce"],
+  "concepts": ["LEFT JOIN", "COUNT", "COALESCE", "Recursive CTE", "GROUP BY"],
+  "prompt": "Count how many visits had 0, 1, 2, 3... transactions. Return transaction_count and visits_count, including missing buckets up to the maximum transaction count.",
+  "schema": [
+    {"table_name": "visits", "columns": {"visit_id": "INTEGER", "customer_id": "INTEGER"}},
+    {"table_name": "transactions", "columns": {"transaction_id": "INTEGER", "visit_id": "INTEGER", "amount": "INTEGER"}}
+  ],
+  "seed_data": {
+    "visits": [[10, 1], [11, 2], [12, 3], [13, 4], [14, 5], [15, 6]],
+    "transactions": [[1, 10, 20], [2, 10, 35], [3, 12, 50], [4, 14, 15], [5, 14, 25], [6, 14, 30]]
+  },
+  "expected_query": "WITH RECURSIVE per_visit AS (SELECT v.visit_id, COUNT(t.transaction_id) AS transaction_count FROM visits v LEFT JOIN transactions t ON v.visit_id = t.visit_id GROUP BY v.visit_id), max_bucket AS (SELECT MAX(transaction_count) AS max_count FROM per_visit), buckets(transaction_count) AS (SELECT 0 UNION ALL SELECT transaction_count + 1 FROM buckets, max_bucket WHERE transaction_count < max_count), visit_counts AS (SELECT transaction_count, COUNT(*) AS visits_count FROM per_visit GROUP BY transaction_count) SELECT b.transaction_count, COALESCE(vc.visits_count, 0) AS visits_count FROM buckets b LEFT JOIN visit_counts vc ON b.transaction_count = vc.transaction_count;",
+  "expected_columns": ["transaction_count", "visits_count"],
+  "order_matters": false,
+  "explanation": "First count transactions per visit, then generate every bucket from 0 to the max count. LEFT JOIN the real counts and COALESCE missing buckets to zero.",
+  "hints": ["Use LEFT JOIN so zero-transaction visits survive.", "Generate bucket numbers with a recursive CTE.", "COALESCE missing bucket counts to 0."],
+  "common_mistakes": ["Using INNER JOIN and losing zero-transaction visits.", "Only returning buckets that exist.", "Counting amount instead of transaction rows."]
+}

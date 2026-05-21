@@ -1,0 +1,34 @@
+{
+  "id": "lesson_01_filter_high_traffic",
+  "module_id": "module_03_stadium_traffic",
+  "order": 1,
+  "type": "tutorial_practice",
+  "title": "Filter High-Traffic Stadium Rows",
+  "difficulty": "Beginner",
+  "concepts": ["WHERE", "Comparison filters"],
+  "estimated_minutes": 10,
+  "learning_objective": "Learn to isolate rows that meet a traffic threshold before checking consecutiveness.",
+  "tutorial": {
+    "explanation": "Consecutive-row problems often start by removing rows that do not qualify. For stadium traffic, only rows with people >= 100 matter.",
+    "syntax": "SELECT id, visit_date, people FROM stadium WHERE people >= 100;",
+    "mental_model": "Filter first, then solve the pattern problem on the smaller set."
+  },
+  "schema": [
+    {"table_name": "stadium", "columns": {"id": "INTEGER", "visit_date": "TEXT", "people": "INTEGER"}}
+  ],
+  "seed_data": {
+    "stadium": [[1, "2026-01-01", 80], [2, "2026-01-02", 120], [3, "2026-01-03", 130], [4, "2026-01-04", 90], [5, "2026-01-05", 150]]
+  },
+  "guided_example": {
+    "prompt": "Show only days with at least 100 people.",
+    "solution_query": "SELECT id, visit_date, people FROM stadium WHERE people >= 100;",
+    "explanation": "The WHERE clause keeps only high-traffic rows."
+  },
+  "practice": {
+    "prompt": "Return id and people for rows where people is at least 120.",
+    "expected_query": "SELECT id, people FROM stadium WHERE people >= 120;",
+    "expected_columns": ["id", "people"],
+    "order_matters": false
+  },
+  "hints": ["Use WHERE.", "Compare people to 120.", "Select only id and people."]
+}

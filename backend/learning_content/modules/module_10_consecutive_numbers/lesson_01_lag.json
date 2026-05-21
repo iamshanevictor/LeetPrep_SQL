@@ -1,0 +1,50 @@
+{
+  "id": "lesson_01_lag",
+  "module_id": "module_10_consecutive_numbers",
+  "order": 1,
+  "type": "tutorial_practice",
+  "title": "Compare with the Previous Row Using LAG",
+  "difficulty": "Intermediate",
+  "concepts": ["LAG", "Window Functions", "ORDER BY"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how to compare each log row with the row immediately before it.",
+  "tutorial": {
+    "explanation": "LAG reads a value from a previous row without joining the table to itself. It is useful when the meaning of a row depends on its neighbor in an ordered sequence.",
+    "syntax": "SELECT id, num, LAG(num) OVER (ORDER BY id) AS previous_num FROM logs;",
+    "mental_model": "ORDER BY lines up the rows. LAG then lets each row look one step backward."
+  },
+  "schema": [
+    {
+      "table_name": "logs",
+      "columns": {
+        "id": "INTEGER",
+        "num": "INTEGER"
+      }
+    }
+  ],
+  "seed_data": {
+    "logs": [
+      [1, 1],
+      [2, 1],
+      [3, 2],
+      [4, 2],
+      [5, 2]
+    ]
+  },
+  "guided_example": {
+    "prompt": "Show each log row with the previous num value.",
+    "solution_query": "SELECT id, num, LAG(num) OVER (ORDER BY id) AS previous_num FROM logs ORDER BY id;",
+    "explanation": "The first row has no previous value, so previous_num is NULL. Every later row can see the num from the row before it."
+  },
+  "practice": {
+    "prompt": "Return rows where num is the same as the previous row's num.",
+    "expected_query": "WITH compared AS (SELECT id, num, LAG(num) OVER (ORDER BY id) AS previous_num FROM logs) SELECT id, num FROM compared WHERE num = previous_num ORDER BY id;",
+    "expected_columns": ["id", "num"],
+    "order_matters": true
+  },
+  "hints": [
+    "Use LAG(num) OVER (ORDER BY id).",
+    "Put the window calculation in a CTE.",
+    "Filter where num equals previous_num."
+  ]
+}

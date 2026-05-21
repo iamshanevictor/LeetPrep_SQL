@@ -11,12 +11,13 @@ This version includes:
 - Flask app factory and REST API structure
 - Vue 3 + Vite single-page app
 - Roadmap overview with 10 target SQL modules
-- Complete Module 1 content: Salary Comparison by Department
+- Complete roadmap content for Modules 1-10
+- Cumulative module metadata showing which earlier modules each module builds on
 - DuckDB-backed in-memory query execution for learning content
 - Basic grading by comparing user query output with expected query output
 - SQL safety checks that only allow `SELECT` and `WITH` learner queries
 
-Modules 2-10 are roadmap metadata only for now. Their lesson content will be added one module at a time.
+Each module now includes tutorial lessons, guided examples, practice prompts, and a boss problem backed by DuckDB seed data.
 
 ## Tech Stack
 
@@ -39,14 +40,23 @@ Each completed roadmap module is designed to follow this path:
 4. Pattern explanation and mental model
 5. Final boss problem
 
-Module 1 currently teaches:
+The roadmap currently covers:
 
 - `GROUP BY`
 - `AVG`
 - `INNER JOIN`
 - `CASE WHEN`
 - `CTE`
-- Department average vs company-wide average comparison
+- `MIN` and `MAX`
+- Subquery exclusion patterns
+- Consecutive row grouping
+- `LEFT JOIN` and zero-count buckets
+- Date interval grouping
+- Conditional aggregation and pivot-style reports
+- `DENSE_RANK`
+- Moving averages
+- Pair generation and distance calculations
+- `LAG` and `LEAD`
 
 ## Folder Structure
 
@@ -184,23 +194,22 @@ Roadmap metadata:
 backend/learning_content/roadmap.json
 ```
 
-Module 1 lesson and boss content:
+Module lesson and boss content:
 
 ```text
-backend/learning_content/modules/module_01_salary_comparison/
+backend/learning_content/modules/
 ```
 
-Add Module 2 content later under:
+Each module folder contains lesson JSON files and a `boss_problem.json` file. For example:
 
 ```text
 backend/learning_content/modules/module_02_quiet_students/
 ```
 
-When adding Module 2, create lesson JSON files and `boss_problem.json`, then update `lessons_count` in `backend/learning_content/roadmap.json`.
+When revising or adding content, keep `lessons_count` and `builds_on_modules` in `backend/learning_content/roadmap.json` in sync with the authored lesson files.
 
 ## What Is Intentionally Not Implemented Yet
 
-- Full lesson content for Modules 2-10
 - Standalone practice problems under `backend/problems/`
 - User progress persistence
 - Daily practice tracking
@@ -223,7 +232,7 @@ When adding Module 2, create lesson JSON files and `boss_problem.json`, then upd
 
 ## Next Planned Features
 
-- Add complete Module 2 lesson content
+- Add richer sample explanations and alternative solutions for each module
 - Persist lesson and boss problem attempts in SQLite
 - Track daily practice and streaks
 - Add standalone problem loading under `backend/problems/`

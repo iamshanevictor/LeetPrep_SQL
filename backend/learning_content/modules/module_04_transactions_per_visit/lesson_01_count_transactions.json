@@ -1,0 +1,34 @@
+{
+  "id": "lesson_01_count_transactions",
+  "module_id": "module_04_transactions_per_visit",
+  "order": 1,
+  "type": "tutorial_practice",
+  "title": "Count Transactions per Visit",
+  "difficulty": "Beginner to Intermediate",
+  "concepts": ["COUNT", "GROUP BY"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how to count transaction rows per visit.",
+  "tutorial": {
+    "explanation": "COUNT with GROUP BY converts many transaction rows into one count per visit.",
+    "syntax": "SELECT visit_id, COUNT(*) AS transaction_count FROM transactions GROUP BY visit_id;",
+    "mental_model": "Each visit_id becomes a bucket. COUNT measures how many transaction rows landed in that bucket."
+  },
+  "schema": [
+    {"table_name": "transactions", "columns": {"transaction_id": "INTEGER", "visit_id": "INTEGER", "amount": "INTEGER"}}
+  ],
+  "seed_data": {
+    "transactions": [[1, 10, 20], [2, 10, 35], [3, 11, 40], [4, 12, 50], [5, 12, 70]]
+  },
+  "guided_example": {
+    "prompt": "Count transaction rows per visit.",
+    "solution_query": "SELECT visit_id, COUNT(*) AS transaction_count FROM transactions GROUP BY visit_id;",
+    "explanation": "Grouping by visit_id gives one row per visit with its transaction count."
+  },
+  "practice": {
+    "prompt": "Return visit_id and total amount for each visit.",
+    "expected_query": "SELECT visit_id, SUM(amount) AS total_amount FROM transactions GROUP BY visit_id;",
+    "expected_columns": ["visit_id", "total_amount"],
+    "order_matters": false
+  },
+  "hints": ["Group by visit_id.", "Use SUM(amount).", "Alias the value as total_amount."]
+}

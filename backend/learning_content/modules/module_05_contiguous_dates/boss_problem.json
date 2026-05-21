@@ -1,0 +1,25 @@
+{
+  "id": "boss_problem",
+  "module_id": "module_05_contiguous_dates",
+  "type": "boss_problem",
+  "title": "Report Contiguous Dates",
+  "difficulty": "Intermediate",
+  "estimated_minutes": 35,
+  "prerequisites": ["module_03_stadium_traffic", "lesson_01_date_filtering", "lesson_02_union_statuses", "lesson_03_date_row_number_grouping"],
+  "concepts": ["Date ranges", "UNION ALL", "ROW_NUMBER", "MIN", "MAX"],
+  "prompt": "Report continuous intervals of the same period_state between 2026-01-01 and 2026-01-31. Return period_state, start_date, and end_date.",
+  "schema": [
+    {"table_name": "failed", "columns": {"fail_date": "TEXT"}},
+    {"table_name": "succeeded", "columns": {"success_date": "TEXT"}}
+  ],
+  "seed_data": {
+    "failed": [["2026-01-01"], ["2026-01-02"], ["2026-01-05"], ["2026-01-06"]],
+    "succeeded": [["2026-01-03"], ["2026-01-04"], ["2026-01-07"]]
+  },
+  "expected_query": "WITH timeline AS (SELECT 'failed' AS period_state, fail_date AS status_date FROM failed WHERE CAST(fail_date AS DATE) BETWEEN DATE '2026-01-01' AND DATE '2026-01-31' UNION ALL SELECT 'succeeded' AS period_state, success_date AS status_date FROM succeeded WHERE CAST(success_date AS DATE) BETWEEN DATE '2026-01-01' AND DATE '2026-01-31'), numbered AS (SELECT period_state, status_date, CAST(status_date AS DATE) - CAST(ROW_NUMBER() OVER (PARTITION BY period_state ORDER BY status_date) AS INTEGER) AS group_key FROM timeline) SELECT period_state, MIN(status_date) AS start_date, MAX(status_date) AS end_date FROM numbered GROUP BY period_state, group_key;",
+  "expected_columns": ["period_state", "start_date", "end_date"],
+  "order_matters": false,
+  "explanation": "Combine both status tables, assign row numbers per status, then group continuous dates using date - row_number.",
+  "hints": ["Normalize both tables into one timeline.", "Use ROW_NUMBER partitioned by period_state.", "Use MIN and MAX for each interval."],
+  "common_mistakes": ["Grouping failed and succeeded rows together.", "Forgetting the date filter.", "Using one row_number across all statuses instead of partitioning by status."]
+}

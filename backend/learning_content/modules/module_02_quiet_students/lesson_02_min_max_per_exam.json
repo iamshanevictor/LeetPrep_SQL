@@ -1,0 +1,34 @@
+{
+  "id": "lesson_02_min_max_per_exam",
+  "module_id": "module_02_quiet_students",
+  "order": 2,
+  "type": "tutorial_practice",
+  "title": "Find Highest and Lowest Score per Exam",
+  "difficulty": "Intermediate",
+  "concepts": ["GROUP BY", "MIN", "MAX"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how to calculate exam-level score boundaries.",
+  "tutorial": {
+    "explanation": "To find top and bottom performers, first compute the highest and lowest score inside each exam group.",
+    "syntax": "SELECT exam_id, MIN(score) AS lowest_score, MAX(score) AS highest_score FROM exams GROUP BY exam_id;",
+    "mental_model": "Each exam_id is a group. MIN and MAX summarize the score range inside that exam."
+  },
+  "schema": [
+    {"table_name": "exams", "columns": {"exam_id": "INTEGER", "student_id": "INTEGER", "score": "INTEGER"}}
+  ],
+  "seed_data": {
+    "exams": [[101, 1, 90], [101, 2, 75], [101, 3, 88], [102, 1, 70], [102, 2, 91], [102, 3, 82]]
+  },
+  "guided_example": {
+    "prompt": "Return the lowest and highest score for each exam.",
+    "solution_query": "SELECT exam_id, MIN(score) AS lowest_score, MAX(score) AS highest_score FROM exams GROUP BY exam_id;",
+    "explanation": "GROUP BY creates one row per exam, then MIN and MAX find the boundary scores."
+  },
+  "practice": {
+    "prompt": "Return exam_id and average score for each exam.",
+    "expected_query": "SELECT exam_id, AVG(score) AS avg_score FROM exams GROUP BY exam_id;",
+    "expected_columns": ["exam_id", "avg_score"],
+    "order_matters": false
+  },
+  "hints": ["Group by exam_id.", "Use AVG(score).", "Alias the result as avg_score."]
+}

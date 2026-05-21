@@ -10,6 +10,7 @@
       "difficulty": "Beginner to Intermediate",
       "concepts": ["INNER JOIN", "GROUP BY", "AVG", "CTE", "CASE WHEN"],
       "lessons_count": 4,
+      "builds_on_modules": [],
       "boss_problem_id": "module_01_salary_comparison/boss_problem",
       "boss_problem_title": "Compare Department Average Salary vs Company Average"
     },
@@ -20,7 +21,8 @@
       "order": 2,
       "difficulty": "Intermediate",
       "concepts": ["INNER JOIN", "MIN", "MAX", "Subqueries", "NOT IN", "Window functions"],
-      "lessons_count": 0,
+      "lessons_count": 3,
+      "builds_on_modules": ["module_01_salary_comparison"],
       "boss_problem_id": "module_02_quiet_students/boss_problem",
       "boss_problem_title": "Find Quiet Students"
     },
@@ -31,7 +33,8 @@
       "order": 3,
       "difficulty": "Intermediate",
       "concepts": ["CTE", "ROW_NUMBER", "Consecutive rows", "Grouping trick"],
-      "lessons_count": 0,
+      "lessons_count": 3,
+      "builds_on_modules": ["module_01_salary_comparison", "module_02_quiet_students"],
       "boss_problem_id": "module_03_stadium_traffic/boss_problem",
       "boss_problem_title": "Find 3 or More Consecutive High-Traffic Rows"
     },
@@ -42,7 +45,8 @@
       "order": 4,
       "difficulty": "Intermediate",
       "concepts": ["LEFT JOIN", "COUNT", "COALESCE", "Generated series", "GROUP BY"],
-      "lessons_count": 0,
+      "lessons_count": 3,
+      "builds_on_modules": ["module_01_salary_comparison", "module_02_quiet_students", "module_03_stadium_traffic"],
       "boss_problem_id": "module_04_transactions_per_visit/boss_problem",
       "boss_problem_title": "Count Visits by Number of Transactions"
     },
@@ -53,7 +57,8 @@
       "order": 5,
       "difficulty": "Intermediate",
       "concepts": ["Date ranges", "UNION", "ROW_NUMBER", "MIN", "MAX"],
-      "lessons_count": 0,
+      "lessons_count": 3,
+      "builds_on_modules": ["module_01_salary_comparison", "module_03_stadium_traffic"],
       "boss_problem_id": "module_05_contiguous_dates/boss_problem",
       "boss_problem_title": "Report Continuous Status Intervals"
     },
@@ -64,7 +69,8 @@
       "order": 6,
       "difficulty": "Intermediate",
       "concepts": ["JOIN", "Date functions", "CASE WHEN", "SUM", "Pivot aggregation"],
-      "lessons_count": 0,
+      "lessons_count": 3,
+      "builds_on_modules": ["module_01_salary_comparison", "module_05_contiguous_dates"],
       "boss_problem_id": "module_06_sales_by_weekday/boss_problem",
       "boss_problem_title": "Report Units Sold per Category by Weekday"
     },
@@ -75,7 +81,8 @@
       "order": 7,
       "difficulty": "Intermediate",
       "concepts": ["JOIN", "PARTITION BY", "DENSE_RANK", "Top N per group", "Ties"],
-      "lessons_count": 0,
+      "lessons_count": 3,
+      "builds_on_modules": ["module_01_salary_comparison", "module_03_stadium_traffic"],
       "boss_problem_id": "module_07_top_3_salaries/boss_problem",
       "boss_problem_title": "Find Top 3 Salaries in Each Department"
     },
@@ -86,7 +93,8 @@
       "order": 8,
       "difficulty": "Intermediate to Advanced",
       "concepts": ["Date aggregation", "Window frames", "Moving average", "ROWS BETWEEN"],
-      "lessons_count": 0,
+      "lessons_count": 3,
+      "builds_on_modules": ["module_01_salary_comparison", "module_05_contiguous_dates", "module_07_top_3_salaries"],
       "boss_problem_id": "module_08_restaurant_growth/boss_problem",
       "boss_problem_title": "Compute 7-Day Moving Average of Payments"
     },
@@ -97,7 +105,8 @@
       "order": 9,
       "difficulty": "Intermediate",
       "concepts": ["CROSS JOIN", "Pair generation", "POW", "SQRT", "ROUND", "MIN"],
-      "lessons_count": 0,
+      "lessons_count": 3,
+      "builds_on_modules": ["module_01_salary_comparison"],
       "boss_problem_id": "module_09_shortest_distance/boss_problem",
       "boss_problem_title": "Find the Shortest Distance Between Points"
     },
@@ -108,7 +117,8 @@
       "order": 10,
       "difficulty": "Intermediate",
       "concepts": ["LAG", "LEAD", "Window functions", "Consecutive row comparison"],
-      "lessons_count": 0,
+      "lessons_count": 3,
+      "builds_on_modules": ["module_03_stadium_traffic", "module_07_top_3_salaries"],
       "boss_problem_id": "module_10_consecutive_numbers/boss_problem",
       "boss_problem_title": "Find Numbers Appearing 3 Times Consecutively"
     }

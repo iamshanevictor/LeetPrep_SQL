@@ -1,0 +1,25 @@
+{
+  "id": "boss_problem",
+  "module_id": "module_02_quiet_students",
+  "type": "boss_problem",
+  "title": "Find Quiet Students",
+  "difficulty": "Intermediate",
+  "estimated_minutes": 30,
+  "prerequisites": ["module_01_salary_comparison", "lesson_01_exam_scores", "lesson_02_min_max_per_exam", "lesson_03_subquery_exclusion"],
+  "concepts": ["INNER JOIN", "MIN", "MAX", "Subqueries", "NOT IN"],
+  "prompt": "Find students who took at least one exam but never scored the highest or lowest score in any exam. Return student_id and student_name.",
+  "schema": [
+    {"table_name": "students", "columns": {"student_id": "INTEGER", "student_name": "TEXT"}},
+    {"table_name": "exams", "columns": {"exam_id": "INTEGER", "student_id": "INTEGER", "score": "INTEGER"}}
+  ],
+  "seed_data": {
+    "students": [[1, "Alice"], [2, "Bob"], [3, "Cara"], [4, "Dan"], [5, "Eli"]],
+    "exams": [[101, 1, 95], [101, 2, 80], [101, 3, 88], [102, 1, 70], [102, 2, 91], [102, 3, 82], [103, 2, 77], [103, 3, 84], [103, 4, 96]]
+  },
+  "expected_query": "WITH exam_bounds AS (SELECT exam_id, MIN(score) AS min_score, MAX(score) AS max_score FROM exams GROUP BY exam_id), noisy_students AS (SELECT DISTINCT e.student_id FROM exams e INNER JOIN exam_bounds b ON e.exam_id = b.exam_id WHERE e.score = b.min_score OR e.score = b.max_score) SELECT s.student_id, s.student_name FROM students s WHERE s.student_id IN (SELECT student_id FROM exams) AND s.student_id NOT IN (SELECT student_id FROM noisy_students);",
+  "expected_columns": ["student_id", "student_name"],
+  "order_matters": false,
+  "explanation": "Quiet students have exam rows, but their ID never appears among per-exam min or max scorers.",
+  "hints": ["Create exam min/max boundaries first.", "Find students whose score equals either boundary.", "Exclude those students from participating students."],
+  "common_mistakes": ["Forgetting to require at least one exam.", "Comparing against global min/max instead of per-exam min/max.", "Returning students who never took any exam."]
+}

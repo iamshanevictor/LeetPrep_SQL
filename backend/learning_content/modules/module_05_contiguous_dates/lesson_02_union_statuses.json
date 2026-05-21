@@ -1,0 +1,36 @@
+{
+  "id": "lesson_02_union_statuses",
+  "module_id": "module_05_contiguous_dates",
+  "order": 2,
+  "type": "tutorial_practice",
+  "title": "Combine Failed and Succeeded Timelines",
+  "difficulty": "Intermediate",
+  "concepts": ["UNION ALL", "CASE-style labels", "Timeline"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how to put separate status tables into one labeled timeline.",
+  "tutorial": {
+    "explanation": "When statuses live in separate tables, normalize them into one stream with a label column before grouping intervals.",
+    "syntax": "SELECT 'failed' AS period_state, fail_date AS status_date FROM failed UNION ALL SELECT 'succeeded', success_date FROM succeeded;",
+    "mental_model": "UNION ALL stacks rows vertically. Adding a label preserves where each row came from."
+  },
+  "schema": [
+    {"table_name": "failed", "columns": {"fail_date": "TEXT"}},
+    {"table_name": "succeeded", "columns": {"success_date": "TEXT"}}
+  ],
+  "seed_data": {
+    "failed": [["2026-01-01"], ["2026-01-02"], ["2026-01-05"]],
+    "succeeded": [["2026-01-03"], ["2026-01-04"]]
+  },
+  "guided_example": {
+    "prompt": "Create one timeline with period_state and status_date.",
+    "solution_query": "SELECT 'failed' AS period_state, fail_date AS status_date FROM failed UNION ALL SELECT 'succeeded' AS period_state, success_date AS status_date FROM succeeded;",
+    "explanation": "Each SELECT returns the same two columns, so UNION ALL can stack them."
+  },
+  "practice": {
+    "prompt": "Return a combined timeline with period_state and status_date.",
+    "expected_query": "SELECT 'failed' AS period_state, fail_date AS status_date FROM failed UNION ALL SELECT 'succeeded' AS period_state, success_date AS status_date FROM succeeded;",
+    "expected_columns": ["period_state", "status_date"],
+    "order_matters": false
+  },
+  "hints": ["Both SELECT statements need the same columns.", "Use literal labels like 'failed'.", "Use UNION ALL, not a join."]
+}

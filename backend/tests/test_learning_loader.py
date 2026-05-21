@@ -41,11 +41,12 @@ def test_get_module_includes_lessons_and_boss_summary():
     assert module["boss_problem"]["id"] == "boss_problem"
 
 
-def test_placeholder_module_has_no_lessons():
+def test_module_2_has_lessons_and_boss_problem():
     module = get_module("module_02_quiet_students")
 
-    assert module["lessons"] == []
-    assert module["boss_problem"] is None
+    assert module["lessons_count"] == 3
+    assert len(module["lessons"]) == 3
+    assert module["boss_problem"]["id"] == "boss_problem"
 
 
 def test_get_lesson_and_boss_problem():
@@ -54,3 +55,12 @@ def test_get_lesson_and_boss_problem():
 
     assert lesson["title"] == "Calculate Average Salary by Department"
     assert boss_problem["type"] == "boss_problem"
+
+
+def test_all_modules_have_authored_lesson_counts():
+    for module in list_modules():
+        lessons = list_lessons(module["id"])
+        boss_problem = get_boss_problem(module["id"])
+
+        assert len(lessons) == module["lessons_count"]
+        assert boss_problem is not None

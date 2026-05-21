@@ -1,0 +1,34 @@
+{
+  "id": "lesson_02_running_total",
+  "module_id": "module_08_restaurant_growth",
+  "order": 2,
+  "type": "tutorial_practice",
+  "title": "Calculate Running Total",
+  "difficulty": "Intermediate",
+  "concepts": ["Window functions", "SUM OVER", "ORDER BY"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how a window SUM can accumulate totals over time.",
+  "tutorial": {
+    "explanation": "A running total sums all rows up to the current row based on date order.",
+    "syntax": "SUM(amount) OVER (ORDER BY visited_on) AS running_total",
+    "mental_model": "The window grows from the first date to the current date."
+  },
+  "schema": [
+    {"table_name": "daily_amounts", "columns": {"visited_on": "TEXT", "amount": "INTEGER"}}
+  ],
+  "seed_data": {
+    "daily_amounts": [["2026-01-01", 100], ["2026-01-02", 80], ["2026-01-03", 120]]
+  },
+  "guided_example": {
+    "prompt": "Calculate a running total by date.",
+    "solution_query": "SELECT visited_on, amount, SUM(amount) OVER (ORDER BY visited_on) AS running_total FROM daily_amounts;",
+    "explanation": "Each row adds the current amount to the sum of all previous dates."
+  },
+  "practice": {
+    "prompt": "Return visited_on and running_total.",
+    "expected_query": "SELECT visited_on, SUM(amount) OVER (ORDER BY visited_on) AS running_total FROM daily_amounts;",
+    "expected_columns": ["visited_on", "running_total"],
+    "order_matters": false
+  },
+  "hints": ["Use SUM(amount) OVER.", "Order the window by visited_on.", "Alias as running_total."]
+}

@@ -1,0 +1,34 @@
+{
+  "id": "lesson_02_row_number",
+  "module_id": "module_03_stadium_traffic",
+  "order": 2,
+  "type": "tutorial_practice",
+  "title": "Assign Row Numbers to Ordered Rows",
+  "difficulty": "Intermediate",
+  "concepts": ["ROW_NUMBER", "ORDER BY", "Window functions"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how ROW_NUMBER creates a sequence based on sort order.",
+  "tutorial": {
+    "explanation": "ROW_NUMBER gives each row a position after sorting. This is the foundation of many consecutive-row tricks.",
+    "syntax": "SELECT id, ROW_NUMBER() OVER (ORDER BY id) AS rn FROM stadium;",
+    "mental_model": "The original id can have gaps. ROW_NUMBER creates a clean 1, 2, 3 sequence over the rows you kept."
+  },
+  "schema": [
+    {"table_name": "stadium", "columns": {"id": "INTEGER", "visit_date": "TEXT", "people": "INTEGER"}}
+  ],
+  "seed_data": {
+    "stadium": [[2, "2026-01-02", 120], [3, "2026-01-03", 130], [5, "2026-01-05", 150]]
+  },
+  "guided_example": {
+    "prompt": "Assign row numbers ordered by id.",
+    "solution_query": "SELECT id, visit_date, people, ROW_NUMBER() OVER (ORDER BY id) AS rn FROM stadium;",
+    "explanation": "ROW_NUMBER follows the id order and gives each row a new sequence number."
+  },
+  "practice": {
+    "prompt": "Return id and rn for rows ordered by visit_date.",
+    "expected_query": "SELECT id, ROW_NUMBER() OVER (ORDER BY visit_date) AS rn FROM stadium;",
+    "expected_columns": ["id", "rn"],
+    "order_matters": false
+  },
+  "hints": ["Use ROW_NUMBER() OVER (...).", "Put ORDER BY visit_date inside OVER.", "Alias the window value as rn."]
+}

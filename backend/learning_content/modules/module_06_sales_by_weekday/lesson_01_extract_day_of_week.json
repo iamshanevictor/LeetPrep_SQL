@@ -1,0 +1,34 @@
+{
+  "id": "lesson_01_extract_day_of_week",
+  "module_id": "module_06_sales_by_weekday",
+  "order": 1,
+  "type": "tutorial_practice",
+  "title": "Extract Day of Week from Order Dates",
+  "difficulty": "Beginner to Intermediate",
+  "concepts": ["Date functions", "EXTRACT"],
+  "estimated_minutes": 12,
+  "learning_objective": "Learn how to convert an order date into a weekday number.",
+  "tutorial": {
+    "explanation": "Pivot-by-weekday problems need a way to classify each date. In DuckDB, EXTRACT(DOW FROM date) returns 0 for Sunday, 1 for Monday, and so on.",
+    "syntax": "SELECT order_id, EXTRACT(DOW FROM CAST(order_date AS DATE)) AS dow FROM orders;",
+    "mental_model": "Date extraction turns a date into a grouping or CASE value."
+  },
+  "schema": [
+    {"table_name": "orders", "columns": {"order_id": "INTEGER", "order_date": "TEXT", "quantity": "INTEGER"}}
+  ],
+  "seed_data": {
+    "orders": [[1, "2026-01-05", 2], [2, "2026-01-06", 3], [3, "2026-01-11", 1]]
+  },
+  "guided_example": {
+    "prompt": "Return each order with its day-of-week number.",
+    "solution_query": "SELECT order_id, EXTRACT(DOW FROM CAST(order_date AS DATE)) AS dow FROM orders;",
+    "explanation": "Casting text to DATE lets EXTRACT read the weekday."
+  },
+  "practice": {
+    "prompt": "Return order_id for orders placed on Monday.",
+    "expected_query": "SELECT order_id FROM orders WHERE EXTRACT(DOW FROM CAST(order_date AS DATE)) = 1;",
+    "expected_columns": ["order_id"],
+    "order_matters": false
+  },
+  "hints": ["Cast order_date as DATE.", "Monday is DOW 1.", "Use the expression in WHERE."]
+}

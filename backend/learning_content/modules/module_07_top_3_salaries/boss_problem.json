@@ -1,0 +1,25 @@
+{
+  "id": "boss_problem",
+  "module_id": "module_07_top_3_salaries",
+  "type": "boss_problem",
+  "title": "Department Top 3 Salaries",
+  "difficulty": "Intermediate",
+  "estimated_minutes": 30,
+  "prerequisites": ["module_01_salary_comparison", "module_03_stadium_traffic", "lesson_01_salary_ranking", "lesson_02_rank_vs_dense_rank", "lesson_03_partition_by_department"],
+  "concepts": ["JOIN", "PARTITION BY", "DENSE_RANK", "Top N per group", "Ties"],
+  "prompt": "Find employees whose salary is among the top 3 distinct salaries in their department. Return department_name, employee_name, and salary.",
+  "schema": [
+    {"table_name": "employees", "columns": {"employee_id": "INTEGER", "employee_name": "TEXT", "department_id": "INTEGER", "salary": "INTEGER"}},
+    {"table_name": "departments", "columns": {"department_id": "INTEGER", "department_name": "TEXT"}}
+  ],
+  "seed_data": {
+    "employees": [[1, "Alice", 1, 100000], [2, "Bob", 1, 95000], [3, "Cara", 1, 95000], [4, "Dan", 1, 80000], [5, "Eli", 1, 70000], [6, "Faye", 2, 110000], [7, "Gus", 2, 90000], [8, "Hana", 2, 85000]],
+    "departments": [[1, "Engineering"], [2, "Sales"]]
+  },
+  "expected_query": "WITH ranked AS (SELECT d.department_name, e.employee_name, e.salary, DENSE_RANK() OVER (PARTITION BY d.department_name ORDER BY e.salary DESC) AS salary_rank FROM employees e INNER JOIN departments d ON e.department_id = d.department_id) SELECT department_name, employee_name, salary FROM ranked WHERE salary_rank <= 3;",
+  "expected_columns": ["department_name", "employee_name", "salary"],
+  "order_matters": false,
+  "explanation": "DENSE_RANK ranks distinct salary levels inside each department, preserving ties. Filtering rank <= 3 gives the top three salary levels.",
+  "hints": ["Use a CTE for ranked employees.", "Partition the rank by department.", "Use DENSE_RANK so ties share a rank."],
+  "common_mistakes": ["Using ROW_NUMBER and dropping tied salaries.", "Ranking across the whole company instead of per department.", "Filtering before calculating the window rank."]
+}

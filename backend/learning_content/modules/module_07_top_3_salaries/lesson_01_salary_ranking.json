@@ -1,0 +1,34 @@
+{
+  "id": "lesson_01_salary_ranking",
+  "module_id": "module_07_top_3_salaries",
+  "order": 1,
+  "type": "tutorial_practice",
+  "title": "Rank Salaries",
+  "difficulty": "Intermediate",
+  "concepts": ["ORDER BY", "Window functions", "Ranking"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how ranking functions assign positions to ordered rows.",
+  "tutorial": {
+    "explanation": "Ranking functions compare rows based on an ORDER BY inside OVER. For salary problems, high salaries usually rank first.",
+    "syntax": "SELECT employee_name, salary, RANK() OVER (ORDER BY salary DESC) AS salary_rank FROM employees;",
+    "mental_model": "The window ORDER BY defines the competition. Ranking functions number each row after sorting."
+  },
+  "schema": [
+    {"table_name": "employees", "columns": {"employee_id": "INTEGER", "employee_name": "TEXT", "salary": "INTEGER"}}
+  ],
+  "seed_data": {
+    "employees": [[1, "Alice", 90000], [2, "Bob", 85000], [3, "Cara", 85000], [4, "Dan", 70000]]
+  },
+  "guided_example": {
+    "prompt": "Rank all employees by salary descending.",
+    "solution_query": "SELECT employee_name, salary, RANK() OVER (ORDER BY salary DESC) AS salary_rank FROM employees;",
+    "explanation": "RANK assigns the same rank to ties, then leaves a gap after the tie."
+  },
+  "practice": {
+    "prompt": "Return employee_name, salary, and row_number ordered by salary descending.",
+    "expected_query": "SELECT employee_name, salary, ROW_NUMBER() OVER (ORDER BY salary DESC) AS row_number FROM employees;",
+    "expected_columns": ["employee_name", "salary", "row_number"],
+    "order_matters": false
+  },
+  "hints": ["Use ROW_NUMBER() OVER.", "Order by salary DESC.", "Alias the value as row_number."]
+}

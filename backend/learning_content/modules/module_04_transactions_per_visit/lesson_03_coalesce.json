@@ -1,0 +1,36 @@
+{
+  "id": "lesson_03_coalesce",
+  "module_id": "module_04_transactions_per_visit",
+  "order": 3,
+  "type": "tutorial_practice",
+  "title": "Use COALESCE for Missing Buckets",
+  "difficulty": "Intermediate",
+  "concepts": ["COALESCE", "LEFT JOIN", "NULL handling"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how COALESCE turns missing joined values into explicit zeros.",
+  "tutorial": {
+    "explanation": "When a LEFT JOIN cannot find a match, selected columns from the right table are NULL. COALESCE lets you replace NULL with a default value.",
+    "syntax": "SELECT bucket, COALESCE(count_value, 0) AS count_value FROM buckets LEFT JOIN counts USING (bucket);",
+    "mental_model": "COALESCE reads left to right and returns the first non-NULL value."
+  },
+  "schema": [
+    {"table_name": "buckets", "columns": {"transaction_count": "INTEGER"}},
+    {"table_name": "visit_counts", "columns": {"transaction_count": "INTEGER", "visits_count": "INTEGER"}}
+  ],
+  "seed_data": {
+    "buckets": [[0], [1], [2], [3]],
+    "visit_counts": [[0, 2], [2, 1]]
+  },
+  "guided_example": {
+    "prompt": "Show every bucket and replace missing visit counts with 0.",
+    "solution_query": "SELECT b.transaction_count, COALESCE(vc.visits_count, 0) AS visits_count FROM buckets b LEFT JOIN visit_counts vc ON b.transaction_count = vc.transaction_count;",
+    "explanation": "Buckets 1 and 3 have no row in visit_counts, so COALESCE returns 0."
+  },
+  "practice": {
+    "prompt": "Return transaction_count and visits_count for every bucket, using 0 when missing.",
+    "expected_query": "SELECT b.transaction_count, COALESCE(vc.visits_count, 0) AS visits_count FROM buckets b LEFT JOIN visit_counts vc ON b.transaction_count = vc.transaction_count;",
+    "expected_columns": ["transaction_count", "visits_count"],
+    "order_matters": false
+  },
+  "hints": ["LEFT JOIN buckets to visit_counts.", "Use COALESCE(vc.visits_count, 0).", "Join on transaction_count."]
+}

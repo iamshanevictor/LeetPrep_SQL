@@ -1,0 +1,34 @@
+{
+  "id": "lesson_02_case_when_aggregation",
+  "module_id": "module_06_sales_by_weekday",
+  "order": 2,
+  "type": "tutorial_practice",
+  "title": "Use CASE WHEN for Conditional Aggregation",
+  "difficulty": "Intermediate",
+  "concepts": ["CASE WHEN", "SUM", "Conditional aggregation"],
+  "estimated_minutes": 18,
+  "learning_objective": "Learn how CASE WHEN can count or sum only rows that match a condition.",
+  "tutorial": {
+    "explanation": "Conditional aggregation uses CASE WHEN inside SUM. Matching rows contribute a value, and non-matching rows contribute 0.",
+    "syntax": "SUM(CASE WHEN condition THEN quantity ELSE 0 END) AS monday_units",
+    "mental_model": "CASE labels each row with the number to add. SUM adds those labels across the group."
+  },
+  "schema": [
+    {"table_name": "orders", "columns": {"order_id": "INTEGER", "order_date": "TEXT", "quantity": "INTEGER"}}
+  ],
+  "seed_data": {
+    "orders": [[1, "2026-01-05", 2], [2, "2026-01-05", 4], [3, "2026-01-06", 3]]
+  },
+  "guided_example": {
+    "prompt": "Calculate total Monday units.",
+    "solution_query": "SELECT SUM(CASE WHEN EXTRACT(DOW FROM CAST(order_date AS DATE)) = 1 THEN quantity ELSE 0 END) AS monday_units FROM orders;",
+    "explanation": "Monday rows add quantity. Other rows add zero."
+  },
+  "practice": {
+    "prompt": "Return total Tuesday units as tuesday_units.",
+    "expected_query": "SELECT SUM(CASE WHEN EXTRACT(DOW FROM CAST(order_date AS DATE)) = 2 THEN quantity ELSE 0 END) AS tuesday_units FROM orders;",
+    "expected_columns": ["tuesday_units"],
+    "order_matters": false
+  },
+  "hints": ["Use SUM(CASE WHEN ...).", "Tuesday is DOW 2.", "Use ELSE 0."]
+}

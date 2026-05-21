@@ -1,0 +1,23 @@
+{
+  "id": "boss_problem",
+  "module_id": "module_03_stadium_traffic",
+  "type": "boss_problem",
+  "title": "Human Traffic of Stadium",
+  "difficulty": "Intermediate",
+  "estimated_minutes": 30,
+  "prerequisites": ["module_01_salary_comparison", "module_02_quiet_students", "lesson_01_filter_high_traffic", "lesson_02_row_number", "lesson_03_consecutive_grouping"],
+  "concepts": ["CTE", "ROW_NUMBER", "Consecutive rows", "GROUP BY"],
+  "prompt": "Find all stadium rows that belong to a group of 3 or more consecutive ids where people is at least 100. Return id, visit_date, and people.",
+  "schema": [
+    {"table_name": "stadium", "columns": {"id": "INTEGER", "visit_date": "TEXT", "people": "INTEGER"}}
+  ],
+  "seed_data": {
+    "stadium": [[1, "2026-01-01", 10], [2, "2026-01-02", 120], [3, "2026-01-03", 130], [4, "2026-01-04", 140], [5, "2026-01-05", 80], [6, "2026-01-06", 160], [7, "2026-01-07", 170], [8, "2026-01-08", 180]]
+  },
+  "expected_query": "WITH high_traffic AS (SELECT id, visit_date, people FROM stadium WHERE people >= 100), numbered AS (SELECT id, visit_date, people, id - ROW_NUMBER() OVER (ORDER BY id) AS group_key FROM high_traffic), valid_groups AS (SELECT group_key FROM numbered GROUP BY group_key HAVING COUNT(*) >= 3) SELECT id, visit_date, people FROM numbered WHERE group_key IN (SELECT group_key FROM valid_groups);",
+  "expected_columns": ["id", "visit_date", "people"],
+  "order_matters": false,
+  "explanation": "Filter to high-traffic rows, create consecutive groups with id - row_number, then keep groups with at least three rows.",
+  "hints": ["Filter people >= 100 first.", "Use ROW_NUMBER ordered by id.", "Group by id - row_number and require COUNT(*) >= 3."],
+  "common_mistakes": ["Checking consecutive dates after filtering incorrectly.", "Counting all stadium rows instead of high-traffic rows.", "Returning only group ids instead of the original rows."]
+}

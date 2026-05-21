@@ -1,0 +1,50 @@
+{
+  "id": "lesson_02_lead",
+  "module_id": "module_10_consecutive_numbers",
+  "order": 2,
+  "type": "tutorial_practice",
+  "title": "Compare with the Next Row Using LEAD",
+  "difficulty": "Intermediate",
+  "concepts": ["LEAD", "Window Functions", "ORDER BY"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how to compare each log row with the row immediately after it.",
+  "tutorial": {
+    "explanation": "LEAD is the opposite of LAG. It reads from a later row in the ordered result, which helps detect whether the current value continues into the next row.",
+    "syntax": "SELECT id, num, LEAD(num) OVER (ORDER BY id) AS next_num FROM logs;",
+    "mental_model": "LAG looks backward. LEAD looks forward. Together, they let one row inspect both neighbors."
+  },
+  "schema": [
+    {
+      "table_name": "logs",
+      "columns": {
+        "id": "INTEGER",
+        "num": "INTEGER"
+      }
+    }
+  ],
+  "seed_data": {
+    "logs": [
+      [1, 4],
+      [2, 5],
+      [3, 5],
+      [4, 5],
+      [5, 6]
+    ]
+  },
+  "guided_example": {
+    "prompt": "Show each log row with the next num value.",
+    "solution_query": "SELECT id, num, LEAD(num) OVER (ORDER BY id) AS next_num FROM logs ORDER BY id;",
+    "explanation": "Each row sees the num from the following row. The last row has no next value, so next_num is NULL."
+  },
+  "practice": {
+    "prompt": "Return rows where num is the same as the next row's num.",
+    "expected_query": "WITH compared AS (SELECT id, num, LEAD(num) OVER (ORDER BY id) AS next_num FROM logs) SELECT id, num FROM compared WHERE num = next_num ORDER BY id;",
+    "expected_columns": ["id", "num"],
+    "order_matters": true
+  },
+  "hints": [
+    "Use LEAD(num) OVER (ORDER BY id).",
+    "Rows at the end of a sequence may have next_num as NULL.",
+    "Filter after calculating the window value."
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "id": "lesson_01_date_filtering",
+  "module_id": "module_05_contiguous_dates",
+  "order": 1,
+  "type": "tutorial_practice",
+  "title": "Filter Rows by Date Range",
+  "difficulty": "Beginner to Intermediate",
+  "concepts": ["Date filtering", "WHERE", "BETWEEN"],
+  "estimated_minutes": 12,
+  "learning_objective": "Learn how to keep rows inside a reporting date window.",
+  "tutorial": {
+    "explanation": "Date problems usually start by limiting the timeline to the requested range. Store dates as real DATE values when possible; here we cast text dates for practice.",
+    "syntax": "SELECT fail_date FROM failed WHERE CAST(fail_date AS DATE) BETWEEN DATE '2026-01-01' AND DATE '2026-01-31';",
+    "mental_model": "Filtering dates first gives every later step a clean timeline to work with."
+  },
+  "schema": [
+    {"table_name": "failed", "columns": {"fail_date": "TEXT"}}
+  ],
+  "seed_data": {
+    "failed": [["2025-12-31"], ["2026-01-01"], ["2026-01-02"], ["2026-02-01"]]
+  },
+  "guided_example": {
+    "prompt": "Return failures in January 2026.",
+    "solution_query": "SELECT fail_date FROM failed WHERE CAST(fail_date AS DATE) BETWEEN DATE '2026-01-01' AND DATE '2026-01-31';",
+    "explanation": "BETWEEN keeps dates from the start through the end date."
+  },
+  "practice": {
+    "prompt": "Return fail_date values from January 1 to January 2, 2026.",
+    "expected_query": "SELECT fail_date FROM failed WHERE CAST(fail_date AS DATE) BETWEEN DATE '2026-01-01' AND DATE '2026-01-02';",
+    "expected_columns": ["fail_date"],
+    "order_matters": false
+  },
+  "hints": ["Cast fail_date as DATE.", "Use BETWEEN.", "Use DATE literals for the boundaries."]
+}

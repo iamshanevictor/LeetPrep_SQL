@@ -1,0 +1,36 @@
+{
+  "id": "lesson_01_exam_scores",
+  "module_id": "module_02_quiet_students",
+  "order": 1,
+  "type": "tutorial_practice",
+  "title": "Understand Exam Score Tables",
+  "difficulty": "Beginner to Intermediate",
+  "concepts": ["INNER JOIN", "COUNT", "GROUP BY"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn how students and exam scores connect before writing exclusion logic.",
+  "tutorial": {
+    "explanation": "Many interview problems split names and activity rows into separate tables. Join students to exams when you need student names together with exam activity.",
+    "syntax": "SELECT s.student_id, s.student_name, COUNT(e.exam_id) AS exams_taken FROM students s INNER JOIN exams e ON s.student_id = e.student_id GROUP BY s.student_id, s.student_name;",
+    "mental_model": "The students table tells you who exists. The exams table tells you what happened. The join lets you ask questions about students who have exam rows."
+  },
+  "schema": [
+    {"table_name": "students", "columns": {"student_id": "INTEGER", "student_name": "TEXT"}},
+    {"table_name": "exams", "columns": {"exam_id": "INTEGER", "student_id": "INTEGER", "score": "INTEGER"}}
+  ],
+  "seed_data": {
+    "students": [[1, "Alice"], [2, "Bob"], [3, "Cara"], [4, "Dan"]],
+    "exams": [[101, 1, 90], [101, 2, 75], [102, 1, 88], [102, 3, 70], [103, 2, 95]]
+  },
+  "guided_example": {
+    "prompt": "Count how many exams each participating student took.",
+    "solution_query": "SELECT s.student_id, s.student_name, COUNT(e.exam_id) AS exams_taken FROM students s INNER JOIN exams e ON s.student_id = e.student_id GROUP BY s.student_id, s.student_name;",
+    "explanation": "INNER JOIN keeps students who have matching exam rows. COUNT then counts exam rows per student."
+  },
+  "practice": {
+    "prompt": "Return student_name and score for every exam row.",
+    "expected_query": "SELECT s.student_name, e.score FROM students s INNER JOIN exams e ON s.student_id = e.student_id;",
+    "expected_columns": ["student_name", "score"],
+    "order_matters": false
+  },
+  "hints": ["Join students to exams on student_id.", "Select the name from students.", "Select the score from exams."]
+}

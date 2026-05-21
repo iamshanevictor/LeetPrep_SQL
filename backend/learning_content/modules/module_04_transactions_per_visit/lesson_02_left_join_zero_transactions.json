@@ -1,0 +1,36 @@
+{
+  "id": "lesson_02_left_join_zero_transactions",
+  "module_id": "module_04_transactions_per_visit",
+  "order": 2,
+  "type": "tutorial_practice",
+  "title": "Include Visits with Zero Transactions",
+  "difficulty": "Intermediate",
+  "concepts": ["LEFT JOIN", "COUNT", "Zero matches"],
+  "estimated_minutes": 15,
+  "learning_objective": "Learn why LEFT JOIN is needed when missing matches still matter.",
+  "tutorial": {
+    "explanation": "INNER JOIN drops visits with no transactions. LEFT JOIN keeps every visit and fills transaction columns with NULL when no match exists.",
+    "syntax": "SELECT v.visit_id, COUNT(t.transaction_id) AS transaction_count FROM visits v LEFT JOIN transactions t ON v.visit_id = t.visit_id GROUP BY v.visit_id;",
+    "mental_model": "Start from the table whose rows must survive. Then LEFT JOIN optional details onto it."
+  },
+  "schema": [
+    {"table_name": "visits", "columns": {"visit_id": "INTEGER", "customer_id": "INTEGER"}},
+    {"table_name": "transactions", "columns": {"transaction_id": "INTEGER", "visit_id": "INTEGER", "amount": "INTEGER"}}
+  ],
+  "seed_data": {
+    "visits": [[10, 1], [11, 2], [12, 3], [13, 4]],
+    "transactions": [[1, 10, 20], [2, 10, 35], [3, 12, 50]]
+  },
+  "guided_example": {
+    "prompt": "Count transactions for every visit, including zero-transaction visits.",
+    "solution_query": "SELECT v.visit_id, COUNT(t.transaction_id) AS transaction_count FROM visits v LEFT JOIN transactions t ON v.visit_id = t.visit_id GROUP BY v.visit_id;",
+    "explanation": "COUNT(t.transaction_id) counts only matched transaction ids. Visits without matches become 0."
+  },
+  "practice": {
+    "prompt": "Return visit_id for visits with zero transactions.",
+    "expected_query": "SELECT v.visit_id FROM visits v LEFT JOIN transactions t ON v.visit_id = t.visit_id GROUP BY v.visit_id HAVING COUNT(t.transaction_id) = 0;",
+    "expected_columns": ["visit_id"],
+    "order_matters": false
+  },
+  "hints": ["Start from visits.", "LEFT JOIN transactions.", "Use HAVING COUNT(t.transaction_id) = 0."]
+}

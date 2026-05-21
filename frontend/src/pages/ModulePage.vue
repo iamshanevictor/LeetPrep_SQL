@@ -69,6 +69,15 @@
           </dl>
         </section>
 
+        <section v-if="buildsOnModules.length" class="card builds-on-panel">
+          <h2>Builds on</h2>
+          <ul>
+            <li v-for="moduleName in buildsOnModules" :key="moduleName">
+              {{ moduleName }}
+            </li>
+          </ul>
+        </section>
+
         <BossProblemCard
           :module="moduleData"
           :module-id="moduleData.id"
@@ -80,7 +89,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 import { fetchModule } from "../api/roadmap";
@@ -97,6 +106,10 @@ const moduleData = ref(null);
 const isLoading = ref(true);
 const errorMessage = ref("");
 
+const buildsOnModules = computed(() =>
+  (moduleData.value?.builds_on_modules || []).map((moduleId) => formatModuleName(moduleId)),
+);
+
 onMounted(async () => {
   try {
     const data = await fetchModule(route.params.moduleId);
@@ -107,6 +120,13 @@ onMounted(async () => {
     isLoading.value = false;
   }
 });
+
+function formatModuleName(moduleId) {
+  return moduleId
+    .replace(/^module_/, "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
 </script>
 
 <style scoped>
@@ -140,7 +160,8 @@ onMounted(async () => {
 .module-header p,
 .concept-panel h2,
 .section-row h2,
-.module-side h2 {
+.module-side h2,
+.builds-on-panel ul {
   margin: 0;
 }
 
@@ -182,6 +203,28 @@ onMounted(async () => {
 .concept-panel h2,
 .module-side h2 {
   font-size: var(--font-md);
+}
+
+.builds-on-panel {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.builds-on-panel ul {
+  display: grid;
+  gap: var(--space-1);
+  padding: 0;
+  list-style: none;
+}
+
+.builds-on-panel li {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+  font-weight: 700;
+  padding: 5px 7px;
 }
 
 dl {

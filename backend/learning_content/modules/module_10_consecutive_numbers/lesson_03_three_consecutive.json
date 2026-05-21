@@ -1,0 +1,54 @@
+{
+  "id": "lesson_03_three_consecutive",
+  "module_id": "module_10_consecutive_numbers",
+  "order": 3,
+  "type": "tutorial_practice",
+  "title": "Find Three Consecutive Equal Values",
+  "difficulty": "Intermediate",
+  "concepts": ["LAG", "LEAD", "DISTINCT", "Consecutive Rows"],
+  "estimated_minutes": 20,
+  "learning_objective": "Learn how to detect when the same number appears in the previous, current, and next rows.",
+  "tutorial": {
+    "explanation": "A value appears three times consecutively when a middle row has the same value as both its previous row and its next row. LAG and LEAD make that comparison direct.",
+    "syntax": "WITH neighbors AS (SELECT num, LAG(num) OVER (ORDER BY id) AS prev_num, LEAD(num) OVER (ORDER BY id) AS next_num FROM logs) SELECT DISTINCT num FROM neighbors WHERE num = prev_num AND num = next_num;",
+    "mental_model": "Think of each row as the possible center of a three-row streak. If both neighbors match it, the streak exists."
+  },
+  "schema": [
+    {
+      "table_name": "logs",
+      "columns": {
+        "id": "INTEGER",
+        "num": "INTEGER"
+      }
+    }
+  ],
+  "seed_data": {
+    "logs": [
+      [1, 1],
+      [2, 1],
+      [3, 1],
+      [4, 2],
+      [5, 2],
+      [6, 3],
+      [7, 3],
+      [8, 3],
+      [9, 3]
+    ]
+  },
+  "guided_example": {
+    "prompt": "Find numbers that appear in at least one three-row streak.",
+    "solution_query": "WITH neighbors AS (SELECT num, LAG(num) OVER (ORDER BY id) AS prev_num, LEAD(num) OVER (ORDER BY id) AS next_num FROM logs) SELECT DISTINCT num AS consecutive_num FROM neighbors WHERE num = prev_num AND num = next_num ORDER BY consecutive_num;",
+    "explanation": "Only rows that sit in the middle of a matching three-row sequence pass the filter. DISTINCT removes duplicates when a longer streak creates multiple matching middle rows."
+  },
+  "practice": {
+    "prompt": "Return each number that appears at least three times consecutively.",
+    "expected_query": "WITH neighbors AS (SELECT num, LAG(num) OVER (ORDER BY id) AS prev_num, LEAD(num) OVER (ORDER BY id) AS next_num FROM logs) SELECT DISTINCT num AS consecutive_num FROM neighbors WHERE num = prev_num AND num = next_num ORDER BY consecutive_num;",
+    "expected_columns": ["consecutive_num"],
+    "order_matters": true
+  },
+  "hints": [
+    "Use one CTE to calculate prev_num and next_num.",
+    "A middle row qualifies when num = prev_num and num = next_num.",
+    "Use DISTINCT because long streaks can produce repeated answers."
+  ]
+}

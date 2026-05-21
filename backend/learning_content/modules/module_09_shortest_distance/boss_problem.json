@@ -1,0 +1,50 @@
+{
+  "id": "boss_problem",
+  "module_id": "module_09_shortest_distance",
+  "type": "boss_problem",
+  "title": "Shortest Distance in a Plane",
+  "difficulty": "Advanced",
+  "estimated_minutes": 30,
+  "prerequisites": [
+    "lesson_01_cross_join_pairs",
+    "lesson_02_distance_formula",
+    "lesson_03_min_distance"
+  ],
+  "concepts": ["CROSS JOIN", "Pair Generation", "POWER", "SQRT", "ROUND", "MIN"],
+  "prompt": "Find the shortest distance between any two points in the plane. Return one column named shortest with the distance rounded to 2 decimal places.",
+  "schema": [
+    {
+      "table_name": "points",
+      "columns": {
+        "id": "INTEGER",
+        "x": "INTEGER",
+        "y": "INTEGER"
+      }
+    }
+  ],
+  "seed_data": {
+    "points": [
+      [1, 0, 0],
+      [2, 3, 4],
+      [3, 6, 8],
+      [4, 1, 1],
+      [5, 2, 2]
+    ]
+  },
+  "expected_query": "SELECT ROUND(MIN(SQRT(POWER(p1.x - p2.x, 2) + POWER(p1.y - p2.y, 2))), 2) AS shortest FROM points p1 CROSS JOIN points p2 WHERE p1.id < p2.id;",
+  "expected_columns": ["shortest"],
+  "order_matters": false,
+  "explanation": "Generate every unique pair with CROSS JOIN and p1.id < p2.id. Calculate each Euclidean distance, take the minimum, and round the result to 2 decimals.",
+  "hints": [
+    "Use CROSS JOIN with two aliases of the points table.",
+    "Use p1.id < p2.id to avoid self-pairs and duplicate mirrored pairs.",
+    "Use SQRT(POWER(x difference, 2) + POWER(y difference, 2)).",
+    "Use MIN to keep only the shortest distance."
+  ],
+  "common_mistakes": [
+    "Using p1.id <> p2.id, which keeps duplicate mirrored pairs.",
+    "Forgetting to remove self-pairs.",
+    "Rounding each coordinate difference instead of the final distance.",
+    "Returning the point IDs when the prompt only asks for the shortest distance."
+  ]
+}

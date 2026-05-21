@@ -1,0 +1,25 @@
+{
+  "id": "boss_problem",
+  "module_id": "module_06_sales_by_weekday",
+  "type": "boss_problem",
+  "title": "Sales by Day of Week",
+  "difficulty": "Intermediate",
+  "estimated_minutes": 35,
+  "prerequisites": ["module_01_salary_comparison", "module_05_contiguous_dates", "lesson_01_extract_day_of_week", "lesson_02_case_when_aggregation", "lesson_03_pivot_result"],
+  "concepts": ["JOIN", "Date functions", "CASE WHEN", "SUM", "Pivot aggregation"],
+  "prompt": "Report units sold per item category by weekday. Return item_category, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, and Sunday.",
+  "schema": [
+    {"table_name": "orders", "columns": {"order_id": "INTEGER", "item_id": "INTEGER", "order_date": "TEXT", "quantity": "INTEGER"}},
+    {"table_name": "items", "columns": {"item_id": "INTEGER", "item_category": "TEXT"}}
+  ],
+  "seed_data": {
+    "orders": [[1, 1, "2026-01-05", 2], [2, 1, "2026-01-06", 4], [3, 2, "2026-01-06", 3], [4, 2, "2026-01-07", 6], [5, 3, "2026-01-11", 5]],
+    "items": [[1, "Book"], [2, "Game"], [3, "Music"]]
+  },
+  "expected_query": "SELECT i.item_category, SUM(CASE WHEN EXTRACT(DOW FROM CAST(o.order_date AS DATE)) = 1 THEN o.quantity ELSE 0 END) AS Monday, SUM(CASE WHEN EXTRACT(DOW FROM CAST(o.order_date AS DATE)) = 2 THEN o.quantity ELSE 0 END) AS Tuesday, SUM(CASE WHEN EXTRACT(DOW FROM CAST(o.order_date AS DATE)) = 3 THEN o.quantity ELSE 0 END) AS Wednesday, SUM(CASE WHEN EXTRACT(DOW FROM CAST(o.order_date AS DATE)) = 4 THEN o.quantity ELSE 0 END) AS Thursday, SUM(CASE WHEN EXTRACT(DOW FROM CAST(o.order_date AS DATE)) = 5 THEN o.quantity ELSE 0 END) AS Friday, SUM(CASE WHEN EXTRACT(DOW FROM CAST(o.order_date AS DATE)) = 6 THEN o.quantity ELSE 0 END) AS Saturday, SUM(CASE WHEN EXTRACT(DOW FROM CAST(o.order_date AS DATE)) = 0 THEN o.quantity ELSE 0 END) AS Sunday FROM orders o INNER JOIN items i ON o.item_id = i.item_id GROUP BY i.item_category;",
+  "expected_columns": ["item_category", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+  "order_matters": false,
+  "explanation": "Join orders to item categories, group by category, and use one SUM(CASE WHEN ...) expression per weekday.",
+  "hints": ["DOW 0 is Sunday and DOW 1 is Monday in DuckDB.", "Use a separate conditional SUM for each weekday.", "Group by item_category."],
+  "common_mistakes": ["Forgetting ELSE 0.", "Grouping by date instead of category.", "Using COUNT instead of SUM(quantity)."]
+}

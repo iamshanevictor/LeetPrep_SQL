@@ -1,0 +1,34 @@
+{
+  "id": "lesson_01_daily_total",
+  "module_id": "module_08_restaurant_growth",
+  "order": 1,
+  "type": "tutorial_practice",
+  "title": "Aggregate Payments per Day",
+  "difficulty": "Beginner to Intermediate",
+  "concepts": ["GROUP BY", "SUM", "Date aggregation"],
+  "estimated_minutes": 12,
+  "learning_objective": "Learn how to reduce multiple customer rows into one daily total.",
+  "tutorial": {
+    "explanation": "Moving average problems usually start by creating a daily grain. If multiple payments happen on the same date, sum them first.",
+    "syntax": "SELECT visited_on, SUM(amount) AS amount FROM customer GROUP BY visited_on;",
+    "mental_model": "Before a moving window can slide over days, each day needs one total amount."
+  },
+  "schema": [
+    {"table_name": "customer", "columns": {"customer_id": "INTEGER", "visited_on": "TEXT", "amount": "INTEGER"}}
+  ],
+  "seed_data": {
+    "customer": [[1, "2026-01-01", 100], [2, "2026-01-01", 50], [3, "2026-01-02", 80]]
+  },
+  "guided_example": {
+    "prompt": "Calculate total amount per day.",
+    "solution_query": "SELECT visited_on, SUM(amount) AS amount FROM customer GROUP BY visited_on;",
+    "explanation": "GROUP BY visited_on creates one row per day."
+  },
+  "practice": {
+    "prompt": "Return visited_on and total amount for each day.",
+    "expected_query": "SELECT visited_on, SUM(amount) AS amount FROM customer GROUP BY visited_on;",
+    "expected_columns": ["visited_on", "amount"],
+    "order_matters": false
+  },
+  "hints": ["Group by visited_on.", "Use SUM(amount).", "Alias the total as amount."]
+}

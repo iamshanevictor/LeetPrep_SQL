@@ -1,0 +1,36 @@
+{
+  "id": "lesson_03_subquery_exclusion",
+  "module_id": "module_02_quiet_students",
+  "order": 3,
+  "type": "tutorial_practice",
+  "title": "Exclude Students with Subqueries",
+  "difficulty": "Intermediate",
+  "concepts": ["Subqueries", "NOT IN", "MAX"],
+  "estimated_minutes": 20,
+  "learning_objective": "Learn how to remove students who appear in a disqualifying set.",
+  "tutorial": {
+    "explanation": "A subquery can build a list of students to exclude. NOT IN then keeps only rows whose student_id does not appear in that list.",
+    "syntax": "SELECT student_id FROM students WHERE student_id NOT IN (SELECT student_id FROM exams WHERE score = 100);",
+    "mental_model": "First identify the disqualified IDs. Then query the main table and filter those IDs away."
+  },
+  "schema": [
+    {"table_name": "students", "columns": {"student_id": "INTEGER", "student_name": "TEXT"}},
+    {"table_name": "exams", "columns": {"exam_id": "INTEGER", "student_id": "INTEGER", "score": "INTEGER"}}
+  ],
+  "seed_data": {
+    "students": [[1, "Alice"], [2, "Bob"], [3, "Cara"], [4, "Dan"]],
+    "exams": [[101, 1, 100], [101, 2, 80], [102, 2, 90], [102, 3, 100]]
+  },
+  "guided_example": {
+    "prompt": "Find students who never scored 100.",
+    "solution_query": "SELECT student_id, student_name FROM students WHERE student_id NOT IN (SELECT student_id FROM exams WHERE score = 100);",
+    "explanation": "The subquery returns students with perfect scores. The outer query removes them."
+  },
+  "practice": {
+    "prompt": "Return student_id and student_name for students who took at least one exam and never scored 100.",
+    "expected_query": "SELECT student_id, student_name FROM students WHERE student_id IN (SELECT student_id FROM exams) AND student_id NOT IN (SELECT student_id FROM exams WHERE score = 100);",
+    "expected_columns": ["student_id", "student_name"],
+    "order_matters": false
+  },
+  "hints": ["Use one subquery to require exam participation.", "Use another subquery to exclude score = 100.", "Both filters compare student_id."]
+}
