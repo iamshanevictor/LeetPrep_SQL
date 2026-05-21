@@ -187,6 +187,7 @@ function formatModuleName(moduleId) {
 
 .module-main,
 .module-side,
+.lesson-section,
 .lesson-list {
   display: grid;
   gap: var(--space-2);
@@ -245,6 +246,7 @@ function formatModuleName(moduleId) {
 
 .section-row {
   justify-content: space-between;
+  margin-bottom: 2px;
 }
 
 .section-row h2,

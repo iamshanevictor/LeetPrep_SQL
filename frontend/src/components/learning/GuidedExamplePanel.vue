@@ -4,18 +4,26 @@
       <h2>Guided example</h2>
     </header>
     <p>{{ guidedExample.prompt }}</p>
-    <pre><code>{{ guidedExample.solution_query }}</code></pre>
+    <pre><code>{{ formattedSolution }}</code></pre>
     <p>{{ guidedExample.explanation }}</p>
   </section>
 </template>
 
 <script setup>
-defineProps({
+import { computed } from "vue";
+
+import { formatSqlForDisplay } from "../../utils/sqlFormatter";
+
+const props = defineProps({
   guidedExample: {
     type: Object,
     required: true,
   },
 });
+
+const formattedSolution = computed(() =>
+  formatSqlForDisplay(props.guidedExample.solution_query),
+);
 </script>
 
 <style scoped>
@@ -41,12 +49,14 @@ p {
 }
 
 pre {
-  overflow-x: auto;
+  overflow-x: hidden;
   border-radius: var(--radius-sm);
   background: #101827;
   color: #f8fafc;
   margin: 0;
   padding: var(--space-2);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 code {

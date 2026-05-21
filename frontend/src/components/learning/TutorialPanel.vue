@@ -7,7 +7,7 @@
 
     <div class="syntax-block">
       <h3>Syntax</h3>
-      <pre><code>{{ tutorial.syntax }}</code></pre>
+      <pre><code>{{ formattedSyntax }}</code></pre>
     </div>
 
     <div class="mental-model">
@@ -18,12 +18,18 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from "vue";
+
+import { formatSqlForDisplay } from "../../utils/sqlFormatter";
+
+const props = defineProps({
   tutorial: {
     type: Object,
     required: true,
   },
 });
+
+const formattedSyntax = computed(() => formatSqlForDisplay(props.tutorial.syntax));
 </script>
 
 <style scoped>
@@ -61,12 +67,14 @@ p {
 }
 
 pre {
-  overflow-x: auto;
+  overflow-x: hidden;
   border-radius: var(--radius-sm);
   background: #101827;
   color: #f8fafc;
   margin: 0;
   padding: var(--space-2);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 code {

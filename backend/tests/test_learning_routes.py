@@ -56,6 +56,26 @@ def test_lesson_detail_includes_expected_output():
     ]
 
 
+def test_lesson_schema_column_order_matches_seed_rows():
+    app = create_app()
+
+    with app.test_client() as client:
+        response = client.get(
+            "/api/modules/module_01_salary_comparison/lessons/lesson_01_group_by_avg"
+        )
+
+    lesson = response.get_json()["lesson"]
+    employees_schema = lesson["schema"][0]
+
+    assert list(employees_schema["columns"].keys()) == [
+        "employee_id",
+        "employee_name",
+        "department_id",
+        "salary",
+    ]
+    assert lesson["seed_data"]["employees"][0] == [1, "Alice", 1, 60000]
+
+
 def test_boss_submit_endpoint_correct_answer():
     app = create_app()
     query = (

@@ -15,4 +15,5 @@ class Config:
         f"sqlite:///{BASE_DIR / 'instance' / 'leetprep_sql.db'}",
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    JSON_SORT_KEYS = False
     PROBLEMS_DIR = os.getenv("PROBLEMS_DIR", str(BASE_DIR / "problems"))

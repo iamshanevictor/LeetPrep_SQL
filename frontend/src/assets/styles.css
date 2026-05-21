@@ -14,6 +14,7 @@
   --color-warning-soft: #fff7e8;
   --color-danger: #b42318;
   --color-danger-soft: #fff1f0;
+  --color-nav-bg: rgba(255, 255, 255, 0.92);
   --color-background: var(--color-bg);
   --color-muted: var(--color-text-muted);
   --radius-sm: 6px;
@@ -38,6 +39,27 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-theme="dark"] {
+  --color-bg: #0f141b;
+  --color-surface: #171d26;
+  --color-surface-muted: #1f2732;
+  --color-border: #2d3847;
+  --color-border-strong: #445268;
+  --color-text: #edf2f7;
+  --color-text-muted: #9ba8ba;
+  --color-primary: #65a1ff;
+  --color-primary-soft: #142642;
+  --color-success: #72d39d;
+  --color-success-soft: #132a20;
+  --color-warning: #f4bd61;
+  --color-warning-soft: #2d2414;
+  --color-danger: #ff8f85;
+  --color-danger-soft: #311b1c;
+  --color-nav-bg: rgba(23, 29, 38, 0.94);
+  --color-background: var(--color-bg);
+  --color-muted: var(--color-text-muted);
 }
 
 * {
@@ -76,7 +98,42 @@ code {
 }
 
 .app-shell {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+}
+
+.page-container {
+  flex: 1;
+}
+
+.workspace-container {
+  flex: 1;
+}
+
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: min(1280px, calc(100% - 24px));
+  margin: auto auto 0;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+  padding: var(--space-3) 0 var(--space-4);
+}
+
+.app-footer a {
+  color: var(--color-text-muted);
+}
+
+.app-footer a:hover {
+  color: var(--color-primary);
+}
+
+.app-footer.is-workspace-footer {
+  width: min(100% - 24px, 1880px);
 }
 
 .page-container {
@@ -86,7 +143,7 @@ code {
 }
 
 .workspace-container {
-  height: calc(100vh - 45px);
+  height: calc(100vh - 88px);
   min-height: 560px;
   overflow: hidden;
   background: var(--color-bg);
@@ -327,5 +384,11 @@ code {
 
   .page-title {
     font-size: 20px;
+  }
+
+  .app-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    width: min(100% - 16px, 1280px);
   }
 }

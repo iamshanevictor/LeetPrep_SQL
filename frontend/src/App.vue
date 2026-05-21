@@ -4,6 +4,16 @@
     <main :class="mainClass">
       <RouterView />
     </main>
+    <footer class="app-footer" :class="{ 'is-workspace-footer': isWorkspaceRoute }">
+      <a
+        href="https://svictor.vercel.app"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        LeetPrep-SQL by Shane Victor
+      </a>
+      <span>Local progress. No account required.</span>
+    </footer>
   </div>
 </template>
 
