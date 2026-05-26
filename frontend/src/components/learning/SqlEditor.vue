@@ -50,14 +50,24 @@ textarea {
   width: 100%;
   min-height: 190px;
   resize: vertical;
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-code-border);
   border-radius: var(--radius-sm);
-  background: #101827;
-  color: #f8fafc;
+  background: var(--color-code-bg);
+  color: var(--color-code-text);
   font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
   font-size: 13px;
   line-height: 1.5;
   padding: var(--space-2);
+}
+
+textarea::placeholder {
+  color: var(--color-code-placeholder);
+}
+
+textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 22%, transparent);
+  outline: none;
 }
 
 textarea:disabled {

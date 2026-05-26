@@ -5,6 +5,20 @@
     <LoadingState v-if="isLoading" message="Loading module..." />
     <ErrorState v-else-if="errorMessage" title="Could not load module" :message="errorMessage" />
     <div v-else class="module-layout">
+      <aside class="card module-nav">
+        <h2>Modules</h2>
+        <RouterLink
+          v-for="roadmapModule in roadmapModules"
+          :key="roadmapModule.id"
+          class="module-nav-link"
+          :to="`/roadmap/${roadmapModule.id}`"
+        >
+          <span>{{ String(roadmapModule.order).padStart(2, "0") }}</span>
+          <strong>{{ roadmapModule.title }}</strong>
+          <small>{{ roadmapModule.lessons_count || 0 }}</small>
+        </RouterLink>
+      </aside>
+
       <main class="module-main">
         <header class="module-header card">
           <div>
@@ -96,10 +110,10 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
-import { fetchModule } from "../api/roadmap";
+import { fetchModule, fetchRoadmap } from "../api/roadmap";
 import BossProblemCard from "../components/roadmap/BossProblemCard.vue";
 import LessonCard from "../components/roadmap/LessonCard.vue";
 import ConceptBadge from "../components/ui/ConceptBadge.vue";
@@ -117,6 +131,7 @@ import {
 
 const route = useRoute();
 const moduleData = ref(null);
+const roadmapModules = ref([]);
 const isLoading = ref(true);
 const errorMessage = ref("");
 const progress = ref(loadProgress());
@@ -156,6 +171,30 @@ onMounted(async () => {
   });
 
   try {
+    const roadmap = await fetchRoadmap();
+    roadmapModules.value = roadmap.modules || [];
+  } catch {
+    roadmapModules.value = [];
+  }
+});
+
+watch(
+  () => route.params.moduleId,
+  async () => {
+    await loadModule();
+  },
+  { immediate: true },
+);
+
+onUnmounted(() => {
+  unsubscribeProgress?.();
+});
+
+async function loadModule() {
+  isLoading.value = true;
+  errorMessage.value = "";
+
+  try {
     const data = await fetchModule(route.params.moduleId);
     moduleData.value = data.module;
   } catch (error) {
@@ -163,11 +202,7 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
-});
-
-onUnmounted(() => {
-  unsubscribeProgress?.();
-});
+}
 
 function formatModuleName(moduleId) {
   return moduleId
@@ -180,22 +215,28 @@ function formatModuleName(moduleId) {
 <style scoped>
 .module-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 310px;
+  grid-template-columns: 230px minmax(0, 1fr) 310px;
   gap: var(--space-2);
   align-items: start;
 }
 
 .module-main,
 .module-side,
+.module-nav,
 .lesson-section,
 .lesson-list {
   display: grid;
   gap: var(--space-2);
 }
 
-.module-side {
+.module-side,
+.module-nav {
   position: sticky;
   top: 57px;
+}
+
+.module-nav {
+  align-content: start;
 }
 
 .module-header {
@@ -210,6 +251,7 @@ function formatModuleName(moduleId) {
 .concept-panel h2,
 .section-row h2,
 .module-side h2,
+.module-nav h2,
 .builds-on-panel ul {
   margin: 0;
 }
@@ -251,8 +293,37 @@ function formatModuleName(moduleId) {
 
 .section-row h2,
 .concept-panel h2,
-.module-side h2 {
+.module-side h2,
+.module-nav h2 {
   font-size: var(--font-md);
+}
+
+.module-nav-link {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: var(--space-1);
+  align-items: center;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+  padding: 6px;
+}
+
+.module-nav-link:hover,
+.module-nav-link.router-link-active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.module-nav-link strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.module-nav-link span,
+.module-nav-link small {
+  font-weight: 800;
 }
 
 .builds-on-panel {
@@ -312,7 +383,8 @@ dd {
     grid-template-columns: 1fr;
   }
 
-  .module-side {
+  .module-side,
+  .module-nav {
     position: static;
   }
 }

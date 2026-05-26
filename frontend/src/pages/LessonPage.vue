@@ -8,7 +8,11 @@
       :message="errorMessage"
     />
 
-    <div v-else class="dense-workspace">
+    <div
+      v-else
+      class="dense-workspace"
+      :class="{ 'has-lesson-nav': isLessonNavOpen && moduleData }"
+    >
       <header class="workspace-topbar">
         <div class="crumbs">
           <RouterLink :to="`/roadmap/${route.params.moduleId}`">Module</RouterLink>
@@ -16,12 +20,65 @@
           <strong>{{ lesson.title }}</strong>
         </div>
         <div class="topbar-actions">
+          <button
+            class="button button-secondary"
+            type="button"
+            @click="isLessonNavOpen = !isLessonNavOpen"
+          >
+            {{ isLessonNavOpen ? "Hide Lessons" : "Show Lessons" }}
+          </button>
           <RouterLink class="button button-secondary" to="/roadmap">Roadmap</RouterLink>
           <RouterLink class="button button-secondary" :to="`/roadmap/${route.params.moduleId}/boss`">
             Boss
           </RouterLink>
         </div>
       </header>
+
+      <section v-if="isLessonNavOpen && moduleData" class="lesson-navigator">
+        <div class="lesson-nav-heading">
+          <div>
+            <p class="page-eyebrow">Current module</p>
+            <h2>{{ moduleData.title }}</h2>
+          </div>
+          <div class="lesson-nav-actions">
+            <RouterLink
+              v-if="previousLesson"
+              class="button button-secondary"
+              :to="`/roadmap/${route.params.moduleId}/lessons/${previousLesson.id}`"
+            >
+              Previous
+            </RouterLink>
+            <RouterLink
+              v-if="nextLesson"
+              class="button button-primary"
+              :to="`/roadmap/${route.params.moduleId}/lessons/${nextLesson.id}`"
+            >
+              Next Lesson
+            </RouterLink>
+          </div>
+        </div>
+        <div class="lesson-nav-list">
+          <RouterLink
+            v-for="(moduleLesson, index) in moduleData.lessons"
+            :key="moduleLesson.id"
+            class="lesson-nav-link"
+            :to="`/roadmap/${route.params.moduleId}/lessons/${moduleLesson.id}`"
+          >
+            <span>{{ index + 1 }}</span>
+            <strong>{{ moduleLesson.title }}</strong>
+            <small>{{ moduleLesson.id === route.params.lessonId ? "Current" : "Open" }}</small>
+          </RouterLink>
+          <RouterLink
+            v-if="moduleData.boss_problem"
+            class="lesson-nav-link boss-link"
+            :to="`/roadmap/${route.params.moduleId}/boss`"
+          >
+            <span>B</span>
+            <strong>{{ moduleData.boss_problem.title }}</strong>
+            <small>Boss</small>
+          </RouterLink>
+        </div>
+      </section>
 
       <div class="workspace-columns lesson-columns">
         <aside class="workspace-panel left-panel">
@@ -118,10 +175,10 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
-import { fetchLesson, runLessonQuery, submitLessonQuery } from "../api/roadmap";
+import { fetchLesson, fetchModule, runLessonQuery, submitLessonQuery } from "../api/roadmap";
 import FeedbackPanel from "../components/learning/FeedbackPanel.vue";
 import GuidedExamplePanel from "../components/learning/GuidedExamplePanel.vue";
 import HintPanel from "../components/learning/HintPanel.vue";
@@ -143,6 +200,7 @@ import {
 
 const route = useRoute();
 const lesson = ref(null);
+const moduleData = ref(null);
 const query = ref("");
 const userResult = ref(null);
 const expectedResult = ref(null);
@@ -151,13 +209,74 @@ const isLoading = ref(true);
 const isRunning = ref(false);
 const isSubmitting = ref(false);
 const errorMessage = ref("");
-const contentKey = getLessonKey(route.params.moduleId, route.params.lessonId);
+const isLessonNavOpen = ref(true);
+const contentKey = computed(() => getLessonKey(route.params.moduleId, route.params.lessonId));
+const currentLessonIndex = computed(() =>
+  (moduleData.value?.lessons || []).findIndex(
+    (moduleLesson) => moduleLesson.id === route.params.lessonId,
+  ),
+);
+const previousLesson = computed(() => {
+  if (currentLessonIndex.value <= 0) {
+    return null;
+  }
+
+  return moduleData.value.lessons[currentLessonIndex.value - 1];
+});
+const nextLesson = computed(() => {
+  if (
+    currentLessonIndex.value < 0 ||
+    currentLessonIndex.value >= (moduleData.value?.lessons || []).length - 1
+  ) {
+    return null;
+  }
+
+  return moduleData.value.lessons[currentLessonIndex.value + 1];
+});
 
 onMounted(async () => {
+  await loadModuleContext();
+});
+
+watch(
+  () => [route.params.moduleId, route.params.lessonId],
+  async () => {
+    await loadLesson();
+  },
+  { immediate: true },
+);
+
+watch(
+  () => route.params.moduleId,
+  async () => {
+    await loadModuleContext();
+  },
+);
+
+watch(query, (nextQuery) => {
+  saveDraftQuery(contentKey.value, nextQuery);
+});
+
+async function loadModuleContext() {
+  try {
+    const data = await fetchModule(route.params.moduleId);
+    moduleData.value = data.module;
+  } catch {
+    moduleData.value = null;
+  }
+}
+
+async function loadLesson() {
+  isLoading.value = true;
+  errorMessage.value = "";
+  userResult.value = null;
+  expectedResult.value = null;
+  feedback.value = { status: "neutral", message: "" };
+
   try {
     const data = await fetchLesson(route.params.moduleId, route.params.lessonId);
     lesson.value = data.lesson;
-    query.value = getDraftQuery(contentKey);
+    query.value = getDraftQuery(contentKey.value);
     setLastVisited({
       type: "lesson",
       moduleId: route.params.moduleId,
@@ -170,11 +289,7 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
-});
-
-watch(query, (nextQuery) => {
-  saveDraftQuery(contentKey, nextQuery);
-});
+}
 
 async function runQuery() {
   isRunning.value = true;
@@ -256,8 +371,13 @@ async function submitQuery() {
   min-height: 0;
 }
 
+.dense-workspace.has-lesson-nav {
+  grid-template-rows: 38px auto minmax(0, 1fr);
+}
+
 .workspace-topbar,
-.workspace-panel {
+.workspace-panel,
+.lesson-navigator {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -274,7 +394,9 @@ async function submitQuery() {
 .crumbs,
 .topbar-actions,
 .concept-list,
-.result-header {
+.result-header,
+.lesson-nav-heading,
+.lesson-nav-actions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -303,6 +425,68 @@ async function submitQuery() {
   grid-template-columns: minmax(260px, 30%) minmax(360px, 42%) minmax(260px, 28%);
   gap: var(--space-2);
   min-height: 0;
+}
+
+.lesson-navigator {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2);
+}
+
+.lesson-nav-heading {
+  justify-content: space-between;
+}
+
+.lesson-nav-heading h2 {
+  margin: 0;
+  font-size: var(--font-md);
+}
+
+.lesson-nav-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-1);
+}
+
+.lesson-nav-link {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: var(--space-1);
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+  padding: 6px;
+}
+
+.lesson-nav-link:hover,
+.lesson-nav-link.router-link-active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.lesson-nav-link span,
+.lesson-nav-link small {
+  font-weight: 850;
+}
+
+.lesson-nav-link strong {
+  overflow: hidden;
+  color: var(--color-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lesson-nav-link.router-link-active strong {
+  color: var(--color-primary);
+}
+
+.boss-link {
+  border-color: #f1bf76;
+  background: var(--color-warning-soft);
 }
 
 .workspace-panel {

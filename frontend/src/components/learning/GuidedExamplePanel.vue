@@ -50,9 +50,10 @@ p {
 
 pre {
   overflow-x: hidden;
+  border: 1px solid var(--color-code-border);
   border-radius: var(--radius-sm);
-  background: #101827;
-  color: #f8fafc;
+  background: var(--color-code-bg);
+  color: var(--color-code-text);
   margin: 0;
   padding: var(--space-2);
   white-space: pre-wrap;
