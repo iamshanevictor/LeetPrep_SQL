@@ -15,6 +15,8 @@
           :key="module.id"
           class="side-link"
           :to="`/roadmap/${module.id}`"
+          @mouseenter="prefetchModule(module.id)"
+          @focus="prefetchModule(module.id)"
         >
           <span>{{ String(module.order).padStart(2, "0") }}</span>
           <strong>{{ module.title }}</strong>
@@ -27,6 +29,8 @@
           :key="module.id"
           :module="module"
           :status="getRoadmapModuleStatus(module, progress)"
+          @mouseenter="prefetchModule(module.id)"
+          @focus="prefetchModule(module.id)"
         />
       </main>
 
@@ -63,6 +67,7 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 
 import { fetchRoadmap } from "../api/roadmap";
+import { prefetchModule } from "../api/roadmap";
 import PageHeader from "../components/layout/PageHeader.vue";
 import RoadmapModuleCard from "../components/roadmap/RoadmapModuleCard.vue";
 import EmptyState from "../components/ui/EmptyState.vue";
@@ -94,6 +99,7 @@ onMounted(async () => {
 
   try {
     roadmap.value = await fetchRoadmap();
+    modules.value.forEach((module) => prefetchModule(module.id));
   } catch (error) {
     errorMessage.value = error.message;
   } finally {

@@ -12,6 +12,8 @@
           :key="roadmapModule.id"
           class="module-nav-link"
           :to="`/roadmap/${roadmapModule.id}`"
+          @mouseenter="prefetchModule(roadmapModule.id)"
+          @focus="prefetchModule(roadmapModule.id)"
         >
           <span>{{ String(roadmapModule.order).padStart(2, "0") }}</span>
           <strong>{{ roadmapModule.title }}</strong>
@@ -113,7 +115,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
-import { fetchModule, fetchRoadmap } from "../api/roadmap";
+import { fetchModule, fetchRoadmap, prefetchModule } from "../api/roadmap";
 import BossProblemCard from "../components/roadmap/BossProblemCard.vue";
 import LessonCard from "../components/roadmap/LessonCard.vue";
 import ConceptBadge from "../components/ui/ConceptBadge.vue";
@@ -173,6 +175,9 @@ onMounted(async () => {
   try {
     const roadmap = await fetchRoadmap();
     roadmapModules.value = roadmap.modules || [];
+    roadmapModules.value.forEach((roadmapModule) => {
+      prefetchModule(roadmapModule.id);
+    });
   } catch {
     roadmapModules.value = [];
   }

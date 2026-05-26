@@ -44,15 +44,19 @@
             <RouterLink
               v-if="previousLesson"
               class="button button-secondary"
-              :to="`/roadmap/${route.params.moduleId}/lessons/${previousLesson.id}`"
-            >
+            :to="`/roadmap/${route.params.moduleId}/lessons/${previousLesson.id}`"
+            @mouseenter="prefetchLesson(route.params.moduleId, previousLesson.id)"
+            @focus="prefetchLesson(route.params.moduleId, previousLesson.id)"
+          >
               Previous
             </RouterLink>
             <RouterLink
               v-if="nextLesson"
               class="button button-primary"
-              :to="`/roadmap/${route.params.moduleId}/lessons/${nextLesson.id}`"
-            >
+            :to="`/roadmap/${route.params.moduleId}/lessons/${nextLesson.id}`"
+            @mouseenter="prefetchLesson(route.params.moduleId, nextLesson.id)"
+            @focus="prefetchLesson(route.params.moduleId, nextLesson.id)"
+          >
               Next Lesson
             </RouterLink>
           </div>
@@ -63,6 +67,8 @@
             :key="moduleLesson.id"
             class="lesson-nav-link"
             :to="`/roadmap/${route.params.moduleId}/lessons/${moduleLesson.id}`"
+            @mouseenter="prefetchLesson(route.params.moduleId, moduleLesson.id)"
+            @focus="prefetchLesson(route.params.moduleId, moduleLesson.id)"
           >
             <span>{{ index + 1 }}</span>
             <strong>{{ moduleLesson.title }}</strong>
@@ -72,6 +78,8 @@
             v-if="moduleData.boss_problem"
             class="lesson-nav-link boss-link"
             :to="`/roadmap/${route.params.moduleId}/boss`"
+            @mouseenter="prefetchBossProblem(route.params.moduleId)"
+            @focus="prefetchBossProblem(route.params.moduleId)"
           >
             <span>B</span>
             <strong>{{ moduleData.boss_problem.title }}</strong>
@@ -178,7 +186,14 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
-import { fetchLesson, fetchModule, runLessonQuery, submitLessonQuery } from "../api/roadmap";
+import {
+  fetchLesson,
+  fetchModule,
+  prefetchBossProblem,
+  prefetchLesson,
+  runLessonQuery,
+  submitLessonQuery,
+} from "../api/roadmap";
 import FeedbackPanel from "../components/learning/FeedbackPanel.vue";
 import GuidedExamplePanel from "../components/learning/GuidedExamplePanel.vue";
 import HintPanel from "../components/learning/HintPanel.vue";
