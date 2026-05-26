@@ -22,6 +22,11 @@
       </aside>
 
       <main class="module-main">
+        <section v-if="!moduleUnlocked" class="card lock-notice">
+          <h2>Module locked</h2>
+          <p>Complete the previous module before practicing here. You can still preview the lesson list.</p>
+        </section>
+
         <header class="module-header card">
           <div>
             <p class="page-eyebrow">Roadmap module</p>
@@ -62,6 +67,7 @@
               :lesson="lesson"
               :index="index"
               :status="getLessonStatus(moduleData.id, lesson.id, progress)"
+              :locked="!isLessonUnlocked(moduleData, lesson.id, progress, roadmapModules)"
             />
           </div>
           <EmptyState
@@ -105,6 +111,7 @@
           :module-id="moduleData.id"
           :boss-problem="moduleData.boss_problem"
           :status="getBossStatus(moduleData.id, progress)"
+          :locked="!isBossUnlocked(moduleData, progress, roadmapModules)"
         />
       </aside>
     </div>
@@ -126,7 +133,10 @@ import LoadingState from "../components/ui/LoadingState.vue";
 import {
   getBossStatus,
   getLessonStatus,
-  getModuleStatus,
+  getRoadmapModuleStatusWithModules,
+  isBossUnlocked,
+  isLessonUnlocked,
+  isRoadmapModuleUnlocked,
   loadProgress,
   subscribeProgress,
 } from "../services/progressStorage";
@@ -143,7 +153,14 @@ const buildsOnModules = computed(() =>
   (moduleData.value?.builds_on_modules || []).map((moduleId) => formatModuleName(moduleId)),
 );
 const moduleStatus = computed(() =>
-  moduleData.value ? getModuleStatus(moduleData.value, progress.value) : "Not Started",
+  moduleData.value
+    ? getRoadmapModuleStatusWithModules(moduleData.value, roadmapModules.value, progress.value)
+    : "Not Started",
+);
+const moduleUnlocked = computed(() =>
+  moduleData.value
+    ? isRoadmapModuleUnlocked(moduleData.value, roadmapModules.value, progress.value)
+    : false,
 );
 const moduleProgressPercent = computed(() => {
   if (!moduleData.value) {
@@ -334,6 +351,25 @@ function formatModuleName(moduleId) {
 .builds-on-panel {
   display: grid;
   gap: var(--space-2);
+}
+
+.lock-notice {
+  border-color: var(--color-warning);
+  background: var(--color-warning-soft);
+}
+
+.lock-notice h2,
+.lock-notice p {
+  margin: 0;
+}
+
+.lock-notice h2 {
+  font-size: var(--font-md);
+}
+
+.lock-notice p {
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
 }
 
 .builds-on-panel ul {

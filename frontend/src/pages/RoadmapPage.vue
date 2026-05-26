@@ -28,7 +28,7 @@
           v-for="module in modules"
           :key="module.id"
           :module="module"
-          :status="getRoadmapModuleStatus(module, progress)"
+          :status="getRoadmapModuleStatusWithModules(module, modules, progress)"
           @mouseenter="prefetchModule(module.id)"
           @focus="prefetchModule(module.id)"
         />
@@ -75,7 +75,7 @@ import ErrorState from "../components/ui/ErrorState.vue";
 import LoadingState from "../components/ui/LoadingState.vue";
 import {
   getProgressSummary,
-  getRoadmapModuleStatus,
+  getRoadmapModuleStatusWithModules,
   loadProgress,
   subscribeProgress,
 } from "../services/progressStorage";

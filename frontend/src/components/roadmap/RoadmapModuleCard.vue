@@ -1,5 +1,9 @@
 <template>
-  <RouterLink class="module-row" :to="`/roadmap/${module.id}`">
+  <RouterLink
+    class="module-row"
+    :class="{ 'is-locked': status === 'Locked' }"
+    :to="`/roadmap/${module.id}`"
+  >
     <span class="module-number">{{ String(module.order).padStart(2, "0") }}</span>
 
     <div class="module-main">
@@ -71,6 +75,10 @@ const buildsOnCount = computed(() => (props.module.builds_on_modules || []).leng
 .module-row:hover {
   border-color: var(--color-primary);
   background: var(--color-surface-muted);
+}
+
+.module-row.is-locked {
+  opacity: 0.72;
 }
 
 .module-number {

@@ -13,7 +13,7 @@
         <div class="crumbs">
           <RouterLink :to="`/roadmap/${route.params.moduleId}`">Module</RouterLink>
           <span>/</span>
-          <strong>{{ bossProblem.title }}</strong>
+          <strong>{{ bossUnlocked ? bossProblem.title : "Boss Problem Locked" }}</strong>
         </div>
         <div class="topbar-actions">
           <span class="badge badge-medium">Boss Problem</span>
@@ -21,7 +21,24 @@
         </div>
       </header>
 
-      <div class="workspace-columns">
+      <div v-if="!bossUnlocked" class="locked-boss-panel">
+        <span class="badge badge-medium">Boss Problem</span>
+        <h1>Final challenge locked</h1>
+        <p>
+          Complete every lesson in {{ moduleData?.title || "this module" }} to reveal the boss
+          problem. The prompt, schema, sample data, hints, and expected output stay hidden until
+          then.
+        </p>
+        <RouterLink
+          v-if="nextIncompleteLesson"
+          class="button button-primary"
+          :to="`/roadmap/${route.params.moduleId}/lessons/${nextIncompleteLesson.id}`"
+        >
+          Continue Lessons
+        </RouterLink>
+      </div>
+
+      <div v-else class="workspace-columns">
         <aside class="workspace-panel left-panel">
           <section class="boss-prompt">
             <span class="badge badge-medium">Final challenge</span>
@@ -129,10 +146,16 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
-import { fetchBossProblem, runBossQuery, submitBossQuery } from "../api/roadmap";
+import {
+  fetchBossProblem,
+  fetchModule,
+  fetchRoadmap,
+  runBossQuery,
+  submitBossQuery,
+} from "../api/roadmap";
 import FeedbackPanel from "../components/learning/FeedbackPanel.vue";
 import HintPanel from "../components/learning/HintPanel.vue";
 import ResultTable from "../components/learning/ResultTable.vue";
@@ -145,13 +168,18 @@ import LoadingState from "../components/ui/LoadingState.vue";
 import {
   getBossKey,
   getDraftQuery,
+  isBossUnlocked,
+  loadProgress,
   markBossComplete,
   saveDraftQuery,
   setLastVisited,
+  subscribeProgress,
 } from "../services/progressStorage";
 
 const route = useRoute();
 const bossProblem = ref(null);
+const moduleData = ref(null);
+const roadmapModules = ref([]);
 const query = ref("");
 const userResult = ref(null);
 const expectedResult = ref(null);
@@ -160,13 +188,68 @@ const isLoading = ref(true);
 const isRunning = ref(false);
 const isSubmitting = ref(false);
 const errorMessage = ref("");
-const contentKey = getBossKey(route.params.moduleId);
+const progress = ref(loadProgress());
+let unsubscribeProgress = null;
+const contentKey = computed(() => getBossKey(route.params.moduleId));
+const bossUnlocked = computed(() =>
+  moduleData.value
+    ? isBossUnlocked(moduleData.value, progress.value, roadmapModules.value)
+    : false,
+);
+const nextIncompleteLesson = computed(() =>
+  (moduleData.value?.lessons || []).find(
+    (lesson) => !progress.value.completedLessons[`${route.params.moduleId}/${lesson.id}`],
+  ),
+);
 
 onMounted(async () => {
+  unsubscribeProgress = subscribeProgress((nextProgress) => {
+    progress.value = nextProgress;
+  });
+  await loadBossPage();
+});
+
+onUnmounted(() => {
+  unsubscribeProgress?.();
+});
+
+watch(
+  () => route.params.moduleId,
+  async () => {
+    await loadBossPage();
+  },
+);
+
+watch(query, (nextQuery) => {
+  if (bossUnlocked.value) {
+    saveDraftQuery(contentKey.value, nextQuery);
+  }
+});
+
+async function loadBossPage() {
+  isLoading.value = true;
+  errorMessage.value = "";
+  bossProblem.value = null;
+  query.value = "";
+  userResult.value = null;
+  expectedResult.value = null;
+  feedback.value = { status: "neutral", message: "" };
+
   try {
+    const [roadmap, moduleResponse] = await Promise.all([
+      fetchRoadmap(),
+      fetchModule(route.params.moduleId),
+    ]);
+    roadmapModules.value = roadmap.modules || [];
+    moduleData.value = moduleResponse.module;
+
+    if (!bossUnlocked.value) {
+      return;
+    }
+
     const data = await fetchBossProblem(route.params.moduleId);
     bossProblem.value = data.boss_problem;
-    query.value = getDraftQuery(contentKey);
+    query.value = getDraftQuery(contentKey.value);
     setLastVisited({
       type: "boss",
       moduleId: route.params.moduleId,
@@ -178,13 +261,13 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
-});
-
-watch(query, (nextQuery) => {
-  saveDraftQuery(contentKey, nextQuery);
-});
+}
 
 async function runQuery() {
+  if (!bossUnlocked.value) {
+    return;
+  }
+
   isRunning.value = true;
   expectedResult.value = null;
   feedback.value = { status: "neutral", message: "Running your query..." };
@@ -208,6 +291,10 @@ async function runQuery() {
 }
 
 async function submitQuery() {
+  if (!bossUnlocked.value) {
+    return;
+  }
+
   isSubmitting.value = true;
   feedback.value = { status: "neutral", message: "Checking your answer..." };
 
@@ -256,7 +343,8 @@ async function submitQuery() {
 }
 
 .workspace-topbar,
-.workspace-panel {
+.workspace-panel,
+.locked-boss-panel {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -311,6 +399,31 @@ async function submitQuery() {
   min-height: 0;
   overflow-y: auto;
   padding: var(--space-3);
+}
+
+.locked-boss-panel {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: var(--space-3);
+  min-height: 320px;
+  border-color: var(--color-warning);
+  background: var(--color-warning-soft);
+  padding: var(--space-4);
+}
+
+.locked-boss-panel h1,
+.locked-boss-panel p {
+  margin: 0;
+}
+
+.locked-boss-panel h1 {
+  color: var(--color-text);
+  font-size: var(--font-lg);
+}
+
+.locked-boss-panel p {
+  max-width: 620px;
 }
 
 .panel-section,

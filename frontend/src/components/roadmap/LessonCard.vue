@@ -1,6 +1,7 @@
 <template>
   <RouterLink
     class="lesson-row"
+    :class="{ 'is-locked': locked }"
     :to="`/roadmap/${lesson.module_id}/lessons/${lesson.id}`"
   >
     <span class="lesson-index">{{ index + 1 }}</span>
@@ -9,7 +10,7 @@
         <h3>{{ lesson.title }}</h3>
         <span class="badge">{{ lesson.estimated_minutes || 10 }} min</span>
         <span class="badge" :class="{ 'badge-easy': status === 'Completed' }">
-          {{ status }}
+          {{ locked ? "Locked" : status }}
         </span>
       </div>
       <p>{{ lesson.learning_objective }}</p>
@@ -21,7 +22,7 @@
         />
       </div>
     </div>
-    <span class="button button-secondary">Start</span>
+    <span class="button button-secondary">{{ locked ? "View" : "Start" }}</span>
   </RouterLink>
 </template>
 
@@ -41,6 +42,10 @@ defineProps({
     type: String,
     default: "Not Started",
   },
+  locked: {
+    type: Boolean,
+    default: false,
+  },
 });
 </script>
 
@@ -59,6 +64,15 @@ defineProps({
 .lesson-row:hover {
   border-color: var(--color-primary);
   background: var(--color-surface-muted);
+}
+
+.lesson-row.is-locked {
+  opacity: 0.72;
+}
+
+.lesson-row.is-locked .lesson-index {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
 }
 
 .lesson-index {

@@ -66,13 +66,22 @@
             v-for="(moduleLesson, index) in moduleData.lessons"
             :key="moduleLesson.id"
             class="lesson-nav-link"
+            :class="{ 'is-locked': !isLessonUnlocked(moduleData, moduleLesson.id, progress, roadmapModules) }"
             :to="`/roadmap/${route.params.moduleId}/lessons/${moduleLesson.id}`"
             @mouseenter="prefetchLesson(route.params.moduleId, moduleLesson.id)"
             @focus="prefetchLesson(route.params.moduleId, moduleLesson.id)"
           >
             <span>{{ index + 1 }}</span>
             <strong>{{ moduleLesson.title }}</strong>
-            <small>{{ moduleLesson.id === route.params.lessonId ? "Current" : "Open" }}</small>
+            <small>
+              {{
+                moduleLesson.id === route.params.lessonId
+                  ? "Current"
+                  : isLessonUnlocked(moduleData, moduleLesson.id, progress, roadmapModules)
+                    ? "Open"
+                    : "Locked"
+              }}
+            </small>
           </RouterLink>
           <RouterLink
             v-if="moduleData.boss_problem"
@@ -113,6 +122,11 @@
         </aside>
 
         <main class="workspace-panel center-panel">
+          <section v-if="!lessonUnlocked" class="lock-banner">
+            <h2>Practice locked</h2>
+            <p>{{ lockMessage }}</p>
+          </section>
+
           <section class="practice-strip">
             <div>
               <h2>Practice</h2>
@@ -122,12 +136,12 @@
           </section>
 
           <section class="editor-section">
-            <SqlEditor v-model="query" :disabled="isRunning || isSubmitting" />
+            <SqlEditor v-model="query" :disabled="!lessonUnlocked || isRunning || isSubmitting" />
             <div class="actions">
               <button
                 class="button button-secondary"
                 type="button"
-                :disabled="isRunning || isSubmitting"
+                :disabled="!lessonUnlocked || isRunning || isSubmitting"
                 @click="runQuery"
               >
                 {{ isRunning ? "Running..." : "Run Query" }}
@@ -135,7 +149,7 @@
               <button
                 class="button button-primary"
                 type="button"
-                :disabled="isRunning || isSubmitting"
+                :disabled="!lessonUnlocked || isRunning || isSubmitting"
                 @click="submitQuery"
               >
                 {{ isSubmitting ? "Submitting..." : "Submit Answer" }}
@@ -183,12 +197,13 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 import {
   fetchLesson,
   fetchModule,
+  fetchRoadmap,
   prefetchBossProblem,
   prefetchLesson,
   runLessonQuery,
@@ -208,14 +223,18 @@ import LoadingState from "../components/ui/LoadingState.vue";
 import {
   getDraftQuery,
   getLessonKey,
+  isLessonUnlocked,
+  loadProgress,
   markLessonComplete,
   saveDraftQuery,
   setLastVisited,
+  subscribeProgress,
 } from "../services/progressStorage";
 
 const route = useRoute();
 const lesson = ref(null);
 const moduleData = ref(null);
+const roadmapModules = ref([]);
 const query = ref("");
 const userResult = ref(null);
 const expectedResult = ref(null);
@@ -225,6 +244,8 @@ const isRunning = ref(false);
 const isSubmitting = ref(false);
 const errorMessage = ref("");
 const isLessonNavOpen = ref(true);
+const progress = ref(loadProgress());
+let unsubscribeProgress = null;
 const contentKey = computed(() => getLessonKey(route.params.moduleId, route.params.lessonId));
 const currentLessonIndex = computed(() =>
   (moduleData.value?.lessons || []).findIndex(
@@ -248,9 +269,39 @@ const nextLesson = computed(() => {
 
   return moduleData.value.lessons[currentLessonIndex.value + 1];
 });
+const lessonUnlocked = computed(() =>
+  moduleData.value
+    ? isLessonUnlocked(
+        moduleData.value,
+        route.params.lessonId,
+        progress.value,
+        roadmapModules.value,
+      )
+    : false,
+);
+const lockMessage = computed(() => {
+  if (!moduleData.value) {
+    return "Loading lesson requirements...";
+  }
+
+  if (currentLessonIndex.value > 0) {
+    const previous = moduleData.value.lessons[currentLessonIndex.value - 1];
+    return `Complete the previous lesson first: ${previous.title}.`;
+  }
+
+  return "Complete the previous module before practicing this lesson.";
+});
 
 onMounted(async () => {
+  unsubscribeProgress = subscribeProgress((nextProgress) => {
+    progress.value = nextProgress;
+  });
+  await loadRoadmapContext();
   await loadModuleContext();
+});
+
+onUnmounted(() => {
+  unsubscribeProgress?.();
 });
 
 watch(
@@ -264,6 +315,7 @@ watch(
 watch(
   () => route.params.moduleId,
   async () => {
+    await loadRoadmapContext();
     await loadModuleContext();
   },
 );
@@ -278,6 +330,15 @@ async function loadModuleContext() {
     moduleData.value = data.module;
   } catch {
     moduleData.value = null;
+  }
+}
+
+async function loadRoadmapContext() {
+  try {
+    const roadmap = await fetchRoadmap();
+    roadmapModules.value = roadmap.modules || [];
+  } catch {
+    roadmapModules.value = [];
   }
 }
 
@@ -307,6 +368,10 @@ async function loadLesson() {
 }
 
 async function runQuery() {
+  if (!lessonUnlocked.value) {
+    return;
+  }
+
   isRunning.value = true;
   expectedResult.value = null;
   feedback.value = { status: "neutral", message: "Running your query..." };
@@ -334,6 +399,10 @@ async function runQuery() {
 }
 
 async function submitQuery() {
+  if (!lessonUnlocked.value) {
+    return;
+  }
+
   isSubmitting.value = true;
   feedback.value = { status: "neutral", message: "Checking your answer..." };
 
@@ -391,8 +460,7 @@ async function submitQuery() {
 }
 
 .workspace-topbar,
-.workspace-panel,
-.lesson-navigator {
+.workspace-panel {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -445,7 +513,8 @@ async function submitQuery() {
 .lesson-navigator {
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-1) var(--space-1) var(--space-2);
 }
 
 .lesson-nav-heading {
@@ -460,7 +529,7 @@ async function submitQuery() {
 .lesson-nav-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--space-1);
+  gap: 3px;
 }
 
 .lesson-nav-link {
@@ -468,7 +537,7 @@ async function submitQuery() {
   grid-template-columns: 22px minmax(0, 1fr) auto;
   gap: var(--space-1);
   align-items: center;
-  border: 1px solid var(--color-border);
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
@@ -481,6 +550,10 @@ async function submitQuery() {
   border-color: var(--color-primary);
   background: var(--color-primary-soft);
   color: var(--color-primary);
+}
+
+.lesson-nav-link.is-locked {
+  opacity: 0.7;
 }
 
 .lesson-nav-link span,
@@ -516,7 +589,8 @@ async function submitQuery() {
 .panel-section,
 .editor-section,
 .result-section,
-.practice-strip {
+.practice-strip,
+.lock-banner {
   display: grid;
   gap: var(--space-2);
   border-bottom: 1px solid var(--color-border);
@@ -526,6 +600,22 @@ async function submitQuery() {
 .panel-section:last-child,
 .result-section:last-child {
   border-bottom: 0;
+}
+
+.lock-banner {
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-sm);
+  background: var(--color-warning-soft);
+  padding: var(--space-2);
+}
+
+.lock-banner h2,
+.lock-banner p {
+  margin: 0;
+}
+
+.lock-banner h2 {
+  font-size: var(--font-md);
 }
 
 h1,

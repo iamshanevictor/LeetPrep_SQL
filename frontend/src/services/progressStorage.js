@@ -97,6 +97,14 @@ export function getModuleStatus(module, progress = loadProgress()) {
 }
 
 export function getRoadmapModuleStatus(module, progress = loadProgress()) {
+  return getRoadmapModuleStatusWithModules(module, [], progress);
+}
+
+export function getRoadmapModuleStatusWithModules(module, modules = [], progress = loadProgress()) {
+  if (!isRoadmapModuleUnlocked(module, modules, progress)) {
+    return "Locked";
+  }
+
   const lessonCount = module?.lessons_count || 0;
   const completedLessons = Object.keys(progress.completedLessons).filter((key) =>
     key.startsWith(`${module.id}/`),
@@ -118,15 +126,67 @@ export function getRoadmapModuleStatus(module, progress = loadProgress()) {
   return "Not Started";
 }
 
+export function isRoadmapModuleUnlocked(module, modules = [], progress = loadProgress()) {
+  if (!module) {
+    return false;
+  }
+
+  const sortedModules = [...modules].sort((first, second) => {
+    return (first.order || 0) - (second.order || 0);
+  });
+
+  if (!sortedModules.length) {
+    return (module.order || 1) <= 1;
+  }
+
+  const moduleIndex = sortedModules.findIndex((item) => item.id === module.id);
+
+  if (moduleIndex === -1) {
+    return (module.order || 1) <= 1;
+  }
+
+  if (moduleIndex === 0) {
+    return true;
+  }
+
+  const previousModule = sortedModules[moduleIndex - 1];
+  return isRoadmapModuleComplete(previousModule, progress);
+}
+
+export function isLessonUnlocked(module, lessonId, progress = loadProgress(), modules = []) {
+  if (!module || !isRoadmapModuleUnlocked(module, modules, progress)) {
+    return false;
+  }
+
+  const lessons = module.lessons || [];
+  const lessonIndex = lessons.findIndex((lesson) => lesson.id === lessonId);
+
+  if (lessonIndex <= 0) {
+    return lessonIndex === 0;
+  }
+
+  const previousLesson = lessons[lessonIndex - 1];
+  return Boolean(progress.completedLessons[getLessonKey(module.id, previousLesson.id)]);
+}
+
+export function isBossUnlocked(module, progress = loadProgress(), modules = []) {
+  if (!module || !isRoadmapModuleUnlocked(module, modules, progress)) {
+    return false;
+  }
+
+  const lessons = module.lessons || [];
+  return lessons.length > 0 && lessons.every((lesson) =>
+    Boolean(progress.completedLessons[getLessonKey(module.id, lesson.id)]),
+  );
+}
+
 export function getProgressSummary(modules = [], progress = loadProgress()) {
   return {
     completedLessons: Object.keys(progress.completedLessons).length,
     completedBossProblems: Object.keys(progress.completedBossProblems).length,
     currentStreak: calculateCurrentStreak(progress.practiceDates),
     lastVisited: progress.lastVisited,
-    completedModules: modules.filter(
-      (module) => getRoadmapModuleStatus(module, progress) === "Completed",
-    ).length,
+    completedModules: modules.filter((module) => isRoadmapModuleComplete(module, progress)).length,
   };
 }
 
@@ -163,6 +223,16 @@ function updateProgress(mutator) {
   const progress = loadProgress();
   mutator(progress);
   persistProgress(progress);
+}
+
+function isRoadmapModuleComplete(module, progress) {
+  const lessonCount = module?.lessons_count || 0;
+  const completedLessons = Object.keys(progress.completedLessons).filter((key) =>
+    key.startsWith(`${module?.id}/`),
+  ).length;
+  const bossCompleted = Boolean(progress.completedBossProblems[module?.id]);
+
+  return lessonCount > 0 && completedLessons >= lessonCount && bossCompleted;
 }
 
 function persistProgress(progress) {
