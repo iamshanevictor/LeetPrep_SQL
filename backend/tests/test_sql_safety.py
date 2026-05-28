@@ -25,7 +25,7 @@ def test_drop_query_is_unsafe():
     is_safe, message = validate_safe_sql("DROP TABLE users")
 
     assert is_safe is False
-    assert message == "Only SELECT or WITH queries are allowed."
+    assert message == "Query contains blocked keyword(s): DROP."
     assert find_blocked_keywords("DROP TABLE users") == ["DROP"]
 
 
@@ -34,3 +34,17 @@ def test_blocked_keyword_inside_select_is_unsafe():
 
     assert is_safe is False
     assert message == "Query contains blocked keyword(s): DELETE."
+
+
+def test_multiple_select_statements_are_unsafe():
+    is_safe, message = validate_safe_sql("SELECT 1; SELECT 2")
+
+    assert is_safe is False
+    assert message == "Only one SELECT or WITH query is allowed."
+
+
+def test_file_read_function_is_unsafe():
+    is_safe, message = validate_safe_sql("SELECT * FROM read_csv('local-file.csv')")
+
+    assert is_safe is False
+    assert message == "Query contains blocked function: readcsv."

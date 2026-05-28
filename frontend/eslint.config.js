@@ -45,4 +45,12 @@ export default [
       },
     },
   },
+  {
+    files: ["eslint.config.js", "vite.config.js", "playwright.config.js"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
 ];

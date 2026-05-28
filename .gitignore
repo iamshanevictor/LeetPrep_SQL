@@ -19,6 +19,9 @@ node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/.env
+frontend/playwright-report/
+frontend/test-results/
+frontend/coverage/
 
 # Editor and OS files
 .vscode/

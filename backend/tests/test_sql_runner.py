@@ -36,7 +36,7 @@ def test_duckdb_query_execution_for_boss_problem():
 def test_duckdb_rejects_unsafe_query():
     lesson = get_lesson("module_01_salary_comparison", "lesson_01_group_by_avg")
 
-    with pytest.raises(SQLExecutionError, match="Only SELECT or WITH queries are allowed"):
+    with pytest.raises(SQLExecutionError, match="blocked keyword"):
         run_user_query(lesson, "DROP TABLE employees")
 
 

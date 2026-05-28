@@ -1,5 +1,8 @@
 import re
 
+import sqlglot
+from sqlglot import exp
+
 
 BLOCKED_KEYWORDS = {
     "DROP",
@@ -16,6 +19,34 @@ BLOCKED_KEYWORDS = {
 }
 
 ALLOWED_STARTING_KEYWORDS = {"SELECT", "WITH"}
+BLOCKED_EXPRESSIONS = (
+    exp.Alter,
+    exp.Command,
+    exp.Create,
+    exp.Delete,
+    exp.Drop,
+    exp.Insert,
+    exp.Update,
+)
+BLOCKED_FUNCTIONS = {
+    "glob",
+    "parquet_scan",
+    "parquetscan",
+    "read_blob",
+    "readblob",
+    "read_csv",
+    "readcsv",
+    "read_json",
+    "readjson",
+    "read_ndjson",
+    "readndjson",
+    "read_parquet",
+    "readparquet",
+    "read_text",
+    "readtext",
+    "sqlite_scan",
+    "sqlitescan",
+}
 
 
 def normalize_sql(query):
@@ -53,17 +84,47 @@ def validate_safe_sql(query):
     if not normalized:
         return False, "Query cannot be empty."
 
-    keywords = _extract_keywords(normalized)
-    if not keywords:
-        return False, "Query must contain SQL keywords."
-
-    first_keyword = keywords[0]
-    if first_keyword not in ALLOWED_STARTING_KEYWORDS:
-        return False, "Only SELECT or WITH queries are allowed."
-
     blocked_keywords = find_blocked_keywords(normalized)
     if blocked_keywords:
         blocked = ", ".join(sorted(set(blocked_keywords)))
         return False, f"Query contains blocked keyword(s): {blocked}."
 
+    try:
+        statements = sqlglot.parse(normalized, read="duckdb")
+    except sqlglot.errors.ParseError:
+        return False, "Query could not be parsed as SQL."
+
+    statements = [statement for statement in statements if statement is not None]
+    if len(statements) != 1:
+        return False, "Only one SELECT or WITH query is allowed."
+
+    statement = statements[0]
+    if not isinstance(statement, (exp.Select, exp.Union)):
+        return False, "Only SELECT or WITH queries are allowed."
+
+    blocked_expression = _find_blocked_expression(statement)
+    if blocked_expression is not None:
+        return False, f"Query contains blocked SQL operation: {blocked_expression}."
+
+    blocked_function = _find_blocked_function(statement)
+    if blocked_function is not None:
+        return False, f"Query contains blocked function: {blocked_function}."
+
     return True, "Query is safe to run."
+
+
+def _find_blocked_expression(statement):
+    for node in statement.walk():
+        if isinstance(node, BLOCKED_EXPRESSIONS):
+            return node.key.upper()
+
+    return None
+
+
+def _find_blocked_function(statement):
+    for node in statement.walk():
+        function_name = (getattr(node, "key", "") or getattr(node, "name", "")).lower()
+        if function_name in BLOCKED_FUNCTIONS:
+            return function_name
+
+    return None

@@ -215,6 +215,38 @@ From the `backend` directory:
 .\.venv\Scripts\python.exe -m pytest
 ```
 
+## Validate Learning Content
+
+Before adding or editing lesson JSON files, run:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe scripts\validate_learning_content.py
+```
+
+This checks roadmap metadata, lesson counts, required fields, schema/seed row
+alignment, boss prerequisites, and expected-query output columns.
+
+## Frontend Quality Checks
+
+From the `frontend` directory:
+
+```powershell
+npm run lint
+npm run test
+npm run build
+```
+
+Frontend E2E tests use Playwright:
+
+```powershell
+npx playwright install chromium
+npm run test:e2e
+```
+
+The GitHub Actions CI workflow runs backend tests, content validation, frontend
+linting, frontend unit tests, build verification, and Playwright E2E tests.
+
 ## Where Learning Content Lives
 
 Roadmap metadata:
