@@ -15,6 +15,7 @@ export async function apiRequest(path, options = {}) {
   } catch (error) {
     throw new Error(
       "Backend unavailable. Start the Flask server and try again.",
+      { cause: error },
     );
   }
 

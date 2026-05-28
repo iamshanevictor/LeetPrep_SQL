@@ -9,7 +9,10 @@ const cache = {
 
 export function fetchRoadmap() {
   if (!cache.roadmap) {
-    cache.roadmap = apiRequest("/roadmap");
+    cache.roadmap = apiRequest("/roadmap").catch((error) => {
+      cache.roadmap = null;
+      throw error;
+    });
   }
 
   return cache.roadmap;
@@ -21,7 +24,13 @@ export function fetchModules() {
 
 export function fetchModule(moduleId) {
   if (!cache.modules.has(moduleId)) {
-    cache.modules.set(moduleId, apiRequest(`/modules/${moduleId}`));
+    cache.modules.set(
+      moduleId,
+      apiRequest(`/modules/${moduleId}`).catch((error) => {
+        cache.modules.delete(moduleId);
+        throw error;
+      }),
+    );
   }
 
   return cache.modules.get(moduleId);
@@ -32,7 +41,10 @@ export function fetchLesson(moduleId, lessonId) {
   if (!cache.lessons.has(cacheKey)) {
     cache.lessons.set(
       cacheKey,
-      apiRequest(`/modules/${moduleId}/lessons/${lessonId}`),
+      apiRequest(`/modules/${moduleId}/lessons/${lessonId}`).catch((error) => {
+        cache.lessons.delete(cacheKey);
+        throw error;
+      }),
     );
   }
 
@@ -55,7 +67,13 @@ export function submitLessonQuery(moduleId, lessonId, query) {
 
 export function fetchBossProblem(moduleId) {
   if (!cache.bosses.has(moduleId)) {
-    cache.bosses.set(moduleId, apiRequest(`/modules/${moduleId}/boss`));
+    cache.bosses.set(
+      moduleId,
+      apiRequest(`/modules/${moduleId}/boss`).catch((error) => {
+        cache.bosses.delete(moduleId);
+        throw error;
+      }),
+    );
   }
 
   return cache.bosses.get(moduleId);
@@ -85,4 +103,11 @@ export function prefetchLesson(moduleId, lessonId) {
 
 export function prefetchBossProblem(moduleId) {
   fetchBossProblem(moduleId).catch(() => {});
+}
+
+export function clearRoadmapCache() {
+  cache.roadmap = null;
+  cache.modules.clear();
+  cache.lessons.clear();
+  cache.bosses.clear();
 }
