@@ -17,3 +17,12 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JSON_SORT_KEYS = False
     PROBLEMS_DIR = os.getenv("PROBLEMS_DIR", str(BASE_DIR / "problems"))
+    CORS_ORIGINS = [
+        origin.strip()
+        for origin in (
+            os.getenv("CORS_ORIGINS")
+            or os.getenv("FRONTEND_ORIGIN")
+            or "*"
+        ).split(",")
+        if origin.strip()
+    ]

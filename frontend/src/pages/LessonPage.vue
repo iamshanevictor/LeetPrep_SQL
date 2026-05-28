@@ -11,7 +11,7 @@
     <div
       v-else
       class="dense-workspace"
-      :class="{ 'has-lesson-nav': isLessonNavOpen && moduleData }"
+      :class="{ 'has-lesson-nav': moduleData }"
     >
       <header class="workspace-topbar">
         <div class="crumbs">
@@ -19,22 +19,9 @@
           <span>/</span>
           <strong>{{ lesson.title }}</strong>
         </div>
-        <div class="topbar-actions">
-          <button
-            class="button button-secondary"
-            type="button"
-            @click="isLessonNavOpen = !isLessonNavOpen"
-          >
-            {{ isLessonNavOpen ? "Hide Lessons" : "Show Lessons" }}
-          </button>
-          <RouterLink class="button button-secondary" to="/roadmap">Roadmap</RouterLink>
-          <RouterLink class="button button-secondary" :to="`/roadmap/${route.params.moduleId}/boss`">
-            Boss
-          </RouterLink>
-        </div>
       </header>
 
-      <section v-if="isLessonNavOpen && moduleData" class="lesson-navigator">
+      <section v-if="moduleData" class="lesson-navigator">
         <div class="lesson-nav-heading">
           <div>
             <p class="page-eyebrow">Current module</p>
@@ -44,21 +31,29 @@
             <RouterLink
               v-if="previousLesson"
               class="button button-secondary"
-            :to="`/roadmap/${route.params.moduleId}/lessons/${previousLesson.id}`"
-            @mouseenter="prefetchLesson(route.params.moduleId, previousLesson.id)"
-            @focus="prefetchLesson(route.params.moduleId, previousLesson.id)"
-          >
+              :to="`/roadmap/${route.params.moduleId}/lessons/${previousLesson.id}`"
+              @mouseenter="prefetchLesson(route.params.moduleId, previousLesson.id)"
+              @focus="prefetchLesson(route.params.moduleId, previousLesson.id)"
+            >
               Previous
             </RouterLink>
             <RouterLink
-              v-if="nextLesson"
+              v-if="nextLesson && nextLessonUnlocked"
               class="button button-primary"
-            :to="`/roadmap/${route.params.moduleId}/lessons/${nextLesson.id}`"
-            @mouseenter="prefetchLesson(route.params.moduleId, nextLesson.id)"
-            @focus="prefetchLesson(route.params.moduleId, nextLesson.id)"
-          >
+              :to="`/roadmap/${route.params.moduleId}/lessons/${nextLesson.id}`"
+              @mouseenter="prefetchLesson(route.params.moduleId, nextLesson.id)"
+              @focus="prefetchLesson(route.params.moduleId, nextLesson.id)"
+            >
               Next Lesson
             </RouterLink>
+            <span
+              v-else-if="nextLesson"
+              class="button button-primary is-disabled"
+              aria-disabled="true"
+              title="Complete this lesson to unlock the next lesson."
+            >
+              Next Lesson
+            </span>
           </div>
         </div>
         <div class="lesson-nav-list">
@@ -67,9 +62,11 @@
             :key="moduleLesson.id"
             class="lesson-nav-link"
             :class="{ 'is-locked': !isLessonUnlocked(moduleData, moduleLesson.id, progress, roadmapModules) }"
-            :to="`/roadmap/${route.params.moduleId}/lessons/${moduleLesson.id}`"
+            :to="lessonNavTarget(moduleLesson)"
+            :aria-disabled="!isLessonUnlocked(moduleData, moduleLesson.id, progress, roadmapModules)"
             @mouseenter="prefetchLesson(route.params.moduleId, moduleLesson.id)"
             @focus="prefetchLesson(route.params.moduleId, moduleLesson.id)"
+            @click="blockLockedLessonNavigation($event, moduleLesson)"
           >
             <span>{{ index + 1 }}</span>
             <strong>{{ moduleLesson.title }}</strong>
@@ -243,7 +240,6 @@ const isLoading = ref(true);
 const isRunning = ref(false);
 const isSubmitting = ref(false);
 const errorMessage = ref("");
-const isLessonNavOpen = ref(true);
 const progress = ref(loadProgress());
 let unsubscribeProgress = null;
 const contentKey = computed(() => getLessonKey(route.params.moduleId, route.params.lessonId));
@@ -269,6 +265,16 @@ const nextLesson = computed(() => {
 
   return moduleData.value.lessons[currentLessonIndex.value + 1];
 });
+const nextLessonUnlocked = computed(() =>
+  nextLesson.value
+    ? isLessonUnlocked(
+        moduleData.value,
+        nextLesson.value.id,
+        progress.value,
+        roadmapModules.value,
+      )
+    : false,
+);
 const lessonUnlocked = computed(() =>
   moduleData.value
     ? isLessonUnlocked(
@@ -434,6 +440,20 @@ async function submitQuery() {
     isSubmitting.value = false;
   }
 }
+
+function lessonNavTarget(moduleLesson) {
+  if (isLessonUnlocked(moduleData.value, moduleLesson.id, progress.value, roadmapModules.value)) {
+    return `/roadmap/${route.params.moduleId}/lessons/${moduleLesson.id}`;
+  }
+
+  return route.fullPath;
+}
+
+function blockLockedLessonNavigation(event, moduleLesson) {
+  if (!isLessonUnlocked(moduleData.value, moduleLesson.id, progress.value, roadmapModules.value)) {
+    event.preventDefault();
+  }
+}
 </script>
 
 <style scoped>
@@ -469,13 +489,13 @@ async function submitQuery() {
 .workspace-topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: var(--space-2);
+  position: relative;
   padding: 0 var(--space-2);
 }
 
 .crumbs,
-.topbar-actions,
 .concept-list,
 .result-header,
 .lesson-nav-heading,
@@ -553,7 +573,13 @@ async function submitQuery() {
 }
 
 .lesson-nav-link.is-locked {
+  cursor: not-allowed;
   opacity: 0.7;
+}
+
+.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
 }
 
 .lesson-nav-link span,

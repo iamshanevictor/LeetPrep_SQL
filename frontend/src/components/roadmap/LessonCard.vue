@@ -1,8 +1,9 @@
 <template>
-  <RouterLink
+  <component
+    :is="locked ? 'div' : RouterLink"
     class="lesson-row"
     :class="{ 'is-locked': locked }"
-    :to="`/roadmap/${lesson.module_id}/lessons/${lesson.id}`"
+    v-bind="linkAttrs"
   >
     <span class="lesson-index">{{ index + 1 }}</span>
     <div class="lesson-main">
@@ -22,14 +23,17 @@
         />
       </div>
     </div>
-    <span class="button button-secondary">{{ locked ? "View" : "Start" }}</span>
-  </RouterLink>
+    <span class="button button-secondary">{{ locked ? "Locked" : "Start" }}</span>
+  </component>
 </template>
 
 <script setup>
+import { computed } from "vue";
+import { RouterLink } from "vue-router";
+
 import ConceptBadge from "../ui/ConceptBadge.vue";
 
-defineProps({
+const props = defineProps({
   lesson: {
     type: Object,
     required: true,
@@ -46,6 +50,19 @@ defineProps({
     type: Boolean,
     default: false,
   },
+});
+
+const linkAttrs = computed(() => {
+  if (props.locked) {
+    return {
+      role: "listitem",
+      "aria-disabled": "true",
+    };
+  }
+
+  return {
+    to: `/roadmap/${props.lesson.module_id}/lessons/${props.lesson.id}`,
+  };
 });
 </script>
 
@@ -67,6 +84,7 @@ defineProps({
 }
 
 .lesson-row.is-locked {
+  cursor: not-allowed;
   opacity: 0.72;
 }
 

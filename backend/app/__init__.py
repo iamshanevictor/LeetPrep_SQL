@@ -12,7 +12,10 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
     app.json.sort_keys = False
 
-    CORS(app)
+    CORS(
+        app,
+        resources={r"/api/*": {"origins": app.config["CORS_ORIGINS"]}},
+    )
     db.init_app(app)
     register_blueprints(app)
 
