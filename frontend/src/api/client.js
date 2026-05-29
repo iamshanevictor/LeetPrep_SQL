@@ -3,13 +3,17 @@ const API_BASE_URL =
 
 export async function apiRequest(path, options = {}) {
   let response;
+  const headers = {
+    ...(options.headers || {}),
+  };
+
+  if (options.body && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
 
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
-      headers: {
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
+      headers,
       ...options,
     });
   } catch (error) {

@@ -33,6 +33,18 @@ def test_cors_allows_configured_origin():
     assert response.headers["Access-Control-Allow-Origin"] == "https://frontend.example.com"
 
 
+def test_cors_allows_default_vercel_origin():
+    app = create_app()
+
+    with app.test_client() as client:
+        response = client.get(
+            "/api/health",
+            headers={"Origin": "https://leetprepsql.vercel.app"},
+        )
+
+    assert response.headers["Access-Control-Allow-Origin"] == "https://leetprepsql.vercel.app"
+
+
 def test_cors_rejects_unconfigured_origin():
     app = create_app(CorsTestConfig)
 

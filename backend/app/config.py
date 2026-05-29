@@ -3,6 +3,7 @@ from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
+DEFAULT_CORS_ORIGINS = "http://localhost:5173,https://leetprepsql.vercel.app"
 
 
 class Config:
@@ -22,7 +23,7 @@ class Config:
         for origin in (
             os.getenv("CORS_ORIGINS")
             or os.getenv("FRONTEND_ORIGIN")
-            or "*"
+            or DEFAULT_CORS_ORIGINS
         ).split(",")
         if origin.strip()
     ]
