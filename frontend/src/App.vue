@@ -14,10 +14,12 @@
       </a>
       <span>Local progress. No account required.</span>
     </footer>
+    <SpeedInsights />
   </div>
 </template>
 
 <script setup>
+import { SpeedInsights } from "@vercel/speed-insights/vue";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 
