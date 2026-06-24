@@ -21,6 +21,20 @@
           <code>JOIN</code>, and <code>GROUP BY</code> queries before attempting
           the modules here.
         </p>
+        <div class="about-points" aria-label="App positioning">
+          <div>
+            <strong>Built for</strong>
+            <span>Intermediate SQL practice and LeetCode preparation.</span>
+          </div>
+          <div>
+            <strong>Focus</strong>
+            <span>Joins, grouping, CTEs, windows, ranking, and query patterns.</span>
+          </div>
+          <div>
+            <strong>Not yet</strong>
+            <span>A beginner syntax course, though beginner modules are planned.</span>
+          </div>
+        </div>
         <div class="notice-row">
           <strong>In development:</strong>
           <span>
@@ -29,7 +43,7 @@
           </span>
         </div>
         <div class="actions">
-          <RouterLink class="button button-primary" :to="continueTo">
+          <RouterLink class="button button-primary" :to="continueTo" :aria-label="continueAriaLabel">
             {{ continueLabel }}
           </RouterLink>
           <RouterLink class="button button-secondary" to="/roadmap">
@@ -41,22 +55,43 @@
         </div>
       </section>
 
-      <aside class="progress-panel" aria-label="Local progress summary">
-        <div class="progress-heading">
-          <div>
-            <p class="eyebrow-line">Your status</p>
-            <h2>Local progress</h2>
+      <div class="dashboard-side">
+        <aside class="progress-panel" aria-label="Local progress summary">
+          <div class="progress-heading">
+            <div>
+              <p class="eyebrow-line">Your status</p>
+              <h2>Local progress</h2>
+            </div>
+            <span class="badge">browser only</span>
           </div>
-          <span class="badge">browser only</span>
-        </div>
-        <p class="progress-note">{{ continueDescription }}</p>
-        <div class="stat-strip compact">
-          <StatCard label="Lessons" :value="lessonProgressLabel" helper="completed" />
-          <StatCard label="Modules" :value="moduleProgressLabel" helper="completed" />
-          <StatCard label="Streak" :value="`${progressSummary.currentStreak}d`" helper="current" />
-          <StatCard label="Problems" :value="problemCount" helper="available" />
-        </div>
-      </aside>
+          <p class="progress-note">{{ continueDescription }}</p>
+          <div class="stat-strip compact">
+            <StatCard label="Lessons" :value="lessonProgressLabel" helper="completed" />
+            <StatCard label="Modules" :value="moduleProgressLabel" helper="completed" />
+            <StatCard label="Streak" :value="`${progressSummary.currentStreak}d`" helper="current" />
+            <StatCard label="Problems" :value="problemCount" helper="available" />
+          </div>
+        </aside>
+
+        <section class="learning-notes">
+          <p class="eyebrow-line">Workflow</p>
+          <h2>How to use this workspace</h2>
+          <ol>
+            <li>
+              <strong>Study the pattern</strong>
+              <span>Read the explanation before writing SQL.</span>
+            </li>
+            <li>
+              <strong>Run before submit</strong>
+              <span>Inspect your output, then submit when it matches the prompt.</span>
+            </li>
+            <li>
+              <strong>Finish in order</strong>
+              <span>Complete lessons to unlock later practice and boss problems.</span>
+            </li>
+          </ol>
+        </section>
+      </div>
     </div>
 
     <div class="dashboard-layout">
@@ -80,16 +115,6 @@
           </RouterLink>
         </div>
         <p v-else class="muted compact-note">Roadmap modules are not loaded yet.</p>
-      </section>
-
-      <section class="learning-notes">
-        <h2>How to use this workspace</h2>
-        <ul>
-          <li>Read the pattern explanation before writing the query.</li>
-          <li>Use Run Query to inspect your output before submitting.</li>
-          <li>Finish lessons in order to unlock later practice and boss problems.</li>
-          <li>Treat boss problems as LeetCode preparation, not copy-paste answers.</li>
-        </ul>
       </section>
 
       <ErrorState v-if="errorMessage" title="Dashboard data is partial" :message="errorMessage" />
@@ -131,15 +156,15 @@ const moduleProgressLabel = computed(
   () => `${progressSummary.value.completedModules}/${moduleCount.value}`,
 );
 const continueTo = computed(() => {
-  const lastVisited = progressSummary.value.lastVisited;
-  if (lastVisited?.path) {
-    return lastVisited.path;
-  }
-
-  return "/roadmap/module_01_salary_comparison";
+  return getContinuePath(progressSummary.value.lastVisited);
 });
 const continueLabel = computed(() =>
   progressSummary.value.lastVisited ? "Continue Learning" : "Start Module 1",
+);
+const continueAriaLabel = computed(() =>
+  progressSummary.value.lastVisited
+    ? `Continue learning: ${progressSummary.value.lastVisited.title || "last opened lesson"}`
+    : "Start Module 1 Lesson 1",
 );
 const continueDescription = computed(() => {
   const lastVisited = progressSummary.value.lastVisited;
@@ -170,19 +195,42 @@ onMounted(async () => {
 onUnmounted(() => {
   unsubscribeProgress?.();
 });
+
+function getContinuePath(lastVisited) {
+  if (lastVisited?.type === "lesson" && lastVisited.moduleId && lastVisited.lessonId) {
+    return `/roadmap/${lastVisited.moduleId}/lessons/${lastVisited.lessonId}`;
+  }
+
+  if (lastVisited?.type === "boss" && lastVisited.moduleId) {
+    return `/roadmap/${lastVisited.moduleId}/boss`;
+  }
+
+  if (isValidLearningPath(lastVisited?.path)) {
+    return lastVisited.path;
+  }
+
+  return "/roadmap/module_01_salary_comparison/lessons/lesson_01_group_by_avg";
+}
+
+function isValidLearningPath(path) {
+  return typeof path === "string" && /^\/roadmap\/[^/]+(\/lessons\/[^/]+|\/boss)?$/.test(path);
+}
 </script>
 
 <style scoped>
 .dashboard-overview {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
-  gap: var(--space-3);
-  align-items: start;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.7fr);
+  gap: var(--space-4);
+  align-items: stretch;
 }
 
 .about-panel {
   display: grid;
-  gap: var(--space-2);
+  align-content: start;
+  gap: var(--space-3);
+  max-width: 920px;
+  padding: var(--space-1) 0;
 }
 
 .about-panel h2,
@@ -194,13 +242,24 @@ onUnmounted(() => {
   line-height: 1.25;
 }
 
+.about-panel h2 {
+  max-width: 780px;
+  font-size: 26px;
+  letter-spacing: 0;
+}
+
 .about-panel p,
 .progress-note,
-.learning-notes li {
+.learning-notes span {
   margin: 0;
   color: var(--color-text-muted);
   font-size: var(--font-sm);
   line-height: 1.55;
+}
+
+.about-panel > p {
+  max-width: 860px;
+  font-size: 14px;
 }
 
 .eyebrow-line {
@@ -209,6 +268,31 @@ onUnmounted(() => {
   font-size: var(--font-xs);
   font-weight: 850;
   text-transform: uppercase;
+}
+
+.about-points {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.about-points div {
+  display: grid;
+  gap: var(--space-1);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-2);
+}
+
+.about-points strong,
+.learning-notes strong {
+  color: var(--color-text);
+  font-size: var(--font-sm);
+}
+
+.about-points span {
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+  line-height: 1.45;
 }
 
 .notice-row {
@@ -232,6 +316,11 @@ onUnmounted(() => {
   color: var(--color-text);
   font-size: var(--font-xs);
   font-weight: 750;
+}
+
+.dashboard-side {
+  display: grid;
+  gap: var(--space-3);
 }
 
 .progress-panel {
@@ -261,9 +350,7 @@ onUnmounted(() => {
 
 .dashboard-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.7fr);
   gap: var(--space-3);
-  align-items: start;
 }
 
 .module-panel {
@@ -313,15 +400,43 @@ onUnmounted(() => {
 .learning-notes {
   display: grid;
   gap: var(--space-2);
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-3);
 }
 
-.learning-notes ul {
+.learning-notes ol {
   display: grid;
   gap: var(--space-2);
   margin: 0;
-  padding-left: 18px;
+  padding: 0;
+  list-style: none;
+  counter-reset: workflow-step;
+}
+
+.learning-notes li {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding-left: 28px;
+  counter-increment: workflow-step;
+}
+
+.learning-notes li::before {
+  position: absolute;
+  top: 1px;
+  left: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  color: var(--color-primary);
+  content: counter(workflow-step);
+  font-size: 11px;
+  font-weight: 850;
 }
 
 @media (max-width: 820px) {
@@ -332,6 +447,14 @@ onUnmounted(() => {
 
   .notice-row {
     display: grid;
+  }
+
+  .about-panel h2 {
+    font-size: 22px;
+  }
+
+  .about-points {
+    grid-template-columns: 1fr;
   }
 }
 </style>
