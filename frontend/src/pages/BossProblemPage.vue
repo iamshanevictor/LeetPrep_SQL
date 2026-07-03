@@ -21,6 +21,79 @@
         </div>
       </header>
 
+      <section v-if="moduleData && bossUnlocked" class="lesson-navigator">
+        <div class="lesson-nav-heading">
+          <div>
+            <p class="page-eyebrow">Current module</p>
+            <h2>{{ moduleData.title }}</h2>
+          </div>
+          <div class="lesson-nav-actions">
+            <RouterLink
+              v-if="previousLesson"
+              class="button button-secondary"
+              :to="`/roadmap/${route.params.moduleId}/lessons/${previousLesson.id}`"
+              @mouseenter="prefetchLesson(route.params.moduleId, previousLesson.id)"
+              @focus="prefetchLesson(route.params.moduleId, previousLesson.id)"
+            >
+              Previous
+            </RouterLink>
+            <RouterLink
+              v-if="nextLesson && nextLessonUnlocked"
+              class="button button-primary"
+              :to="`/roadmap/${route.params.moduleId}/lessons/${nextLesson.id}`"
+              @mouseenter="prefetchLesson(route.params.moduleId, nextLesson.id)"
+              @focus="prefetchLesson(route.params.moduleId, nextLesson.id)"
+            >
+              Next Lesson
+            </RouterLink>
+            <span
+              v-else-if="nextLesson"
+              class="button button-primary is-disabled"
+              aria-disabled="true"
+              title="Complete this lesson to unlock the next lesson."
+            >
+              Next Lesson
+            </span>
+          </div>
+        </div>
+        <div class="lesson-nav-list">
+          <RouterLink
+            v-for="(moduleLesson, index) in moduleData.lessons"
+            :key="moduleLesson.id"
+            class="lesson-nav-link"
+            :class="{ 'is-locked': !isLessonUnlocked(moduleData, moduleLesson.id, progress, roadmapModules) }"
+            :to="lessonNavTarget(moduleLesson)"
+            :aria-disabled="!isLessonUnlocked(moduleData, moduleLesson.id, progress, roadmapModules)"
+            @mouseenter="prefetchLesson(route.params.moduleId, moduleLesson.id)"
+            @focus="prefetchLesson(route.params.moduleId, moduleLesson.id)"
+            @click="blockLockedLessonNavigation($event, moduleLesson)"
+          >
+            <span>{{ index + 1 }}</span>
+            <strong>{{ moduleLesson.title }}</strong>
+            <small>
+              {{
+                moduleLesson.id === route.params.lessonId
+                  ? "Current"
+                  : isLessonUnlocked(moduleData, moduleLesson.id, progress, roadmapModules)
+                    ? "Open"
+                    : "Locked"
+              }}
+            </small>
+          </RouterLink>
+          <RouterLink
+            v-if="moduleData.boss_problem"
+            class="lesson-nav-link boss-link"
+            :to="`/roadmap/${route.params.moduleId}/boss`"
+            @mouseenter="prefetchBossProblem(route.params.moduleId)"
+            @focus="prefetchBossProblem(route.params.moduleId)"
+          >
+            <span>B</span>
+            <strong>{{ moduleData.boss_problem.title }}</strong>
+            <small>Boss</small>
+          </RouterLink>
+        </div>
+      </section>
+
       <div v-if="!bossUnlocked" class="locked-boss-panel">
         <span class="badge badge-medium">Boss Problem</span>
         <h1>Final challenge locked</h1>
@@ -171,6 +244,16 @@ const {
   errorMessage,
   bossUnlocked,
   nextIncompleteLesson,
+  progress,
+  roadmapModules,
+  previousLesson,
+  nextLesson,
+  nextLessonUnlocked,
+  isLessonUnlocked,
+  lessonNavTarget,
+  prefetchLesson,
+  prefetchBossProblem,
+  blockLockedLessonNavigation,
   runQuery,
   submitQuery,
 } = useBossWorkspace();
@@ -219,6 +302,98 @@ const {
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-1);
+}
+
+/* Lesson navigator (shared styling with LessonPage) */
+.lesson-navigator {
+  display: grid;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-1) var(--space-1) var(--space-2);
+}
+
+.lesson-nav-heading {
+  justify-content: space-between;
+}
+
+.lesson-nav-heading h2 {
+  margin: 0;
+  font-size: var(--font-md);
+}
+
+.lesson-nav-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 3px;
+}
+
+.lesson-nav-link {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: var(--space-1);
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+  padding: 6px;
+}
+
+.lesson-nav-link:hover,
+.lesson-nav-link.router-link-active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.lesson-nav-link.is-locked {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.lesson-nav-link span,
+.lesson-nav-link small {
+  font-weight: 850;
+}
+
+.lesson-nav-link strong {
+  overflow: hidden;
+  color: var(--color-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lesson-nav-link.router-link-active strong {
+  color: var(--color-primary);
+}
+
+.boss-link {
+  border-color: #f1bf76;
+  background: var(--color-warning-soft);
+}
+
+/* end lesson navigator */
+
+.workspace-columns {
+  display: grid;
+  grid-template-columns: minmax(260px, 30%) minmax(360px, 42%) minmax(260px, 28%);
+  gap: var(--space-2);
+  min-height: 0;
+}
+
+.workspace-panel {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-3);
 }
 
 .crumbs {
