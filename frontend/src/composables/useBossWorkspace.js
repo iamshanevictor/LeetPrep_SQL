@@ -12,6 +12,7 @@ import {
   getBossKey,
   getDraftQuery,
   isBossUnlocked,
+  isLessonUnlocked,
   loadProgress,
   markBossComplete,
   saveDraftQuery,
@@ -167,6 +168,70 @@ export function useBossWorkspace() {
     }
   }
 
+  // --- Lesson navigation helpers (used by BossProblemPage) ---
+  function getModuleLessonUnlocked(module, lessonId) {
+    // isLessonUnlocked lives in progressStorage, but useBossWorkspace doesn't currently import it.
+    // To keep this function safe, only compute when module is present.
+    return module
+      ? isLessonUnlocked(module, lessonId, progress.value, roadmapModules.value)
+      : false;
+  }
+
+  const currentLessonIndex = computed(() =>
+    (moduleData.value?.lessons || []).findIndex(
+      (l) => l.id === route.params.lessonId,
+    ),
+  );
+
+  const previousLesson = computed(() => {
+    if (!moduleData.value?.lessons) return null;
+    if (currentLessonIndex.value <= 0) return null;
+    return moduleData.value.lessons[currentLessonIndex.value - 1];
+  });
+
+  const nextLesson = computed(() => {
+    if (!moduleData.value?.lessons) return null;
+    if (
+      currentLessonIndex.value < 0 ||
+      currentLessonIndex.value >= moduleData.value.lessons.length - 1
+    ) {
+      return null;
+    }
+    return moduleData.value.lessons[currentLessonIndex.value + 1];
+  });
+
+  const nextLessonUnlocked = computed(() =>
+    nextLesson.value
+      ? getModuleLessonUnlocked(moduleData.value, nextLesson.value.id)
+      : false,
+  );
+
+  function isLessonUnlockedFn(module, lessonId) {
+    return getModuleLessonUnlocked(module, lessonId);
+  }
+
+  function lessonNavTarget(moduleLesson) {
+    return getModuleLessonUnlocked(moduleData.value, moduleLesson.id)
+      ? `/roadmap/${route.params.moduleId}/lessons/${moduleLesson.id}`
+      : route.fullPath;
+  }
+
+  function blockLockedLessonNavigation(event, moduleLesson) {
+    if (!getModuleLessonUnlocked(moduleData.value, moduleLesson.id)) {
+      event.preventDefault();
+    }
+  }
+
+  // prefetch / navigation: reuse roadmap API helpers if they exist
+  async function prefetchLesson() {
+    // Best-effort prefetch; boss page doesn't currently rely on it for correctness.
+  }
+
+  async function prefetchBossProblem() {
+    // No-op prefetch; handled by normal fetch when navigating.
+  }
+
+
   return {
     route,
     bossProblem,
@@ -181,6 +246,16 @@ export function useBossWorkspace() {
     errorMessage,
     bossUnlocked,
     nextIncompleteLesson,
+    progress,
+    roadmapModules,
+    previousLesson,
+    nextLesson,
+    nextLessonUnlocked,
+    isLessonUnlocked: isLessonUnlockedFn,
+    lessonNavTarget,
+    prefetchLesson,
+    prefetchBossProblem,
+    blockLockedLessonNavigation,
     runQuery,
     submitQuery,
   };
