@@ -2,7 +2,9 @@
   <header class="app-navbar" :class="{ 'is-workspace': workspace }">
     <div class="navbar-inner">
       <RouterLink class="brand" to="/" aria-label="LeetPrep-SQL dashboard">
-        <span class="brand-mark">SQL</span>
+        <span class="brand-mark">
+          <img src="/favicon.png" alt="SQL logo" />
+        </span>
         <span>LeetPrep-SQL</span>
       </RouterLink>
 
@@ -102,13 +104,18 @@ function toggleTheme() {
 .brand-mark {
   display: inline-grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border-radius: var(--radius-sm);
-  background: var(--color-primary);
-  color: #ffffff;
-  font-size: 11px;
-  letter-spacing: 0;
+  background: none;
+  padding: 0;
+}
+
+.brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .nav-links {
