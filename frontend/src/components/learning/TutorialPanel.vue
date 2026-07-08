@@ -90,7 +90,6 @@ code {
 }
 
 .mental-model {
-  border-left: 3px solid var(--color-success);
   border-radius: var(--radius-sm);
   background: var(--color-success-soft);
   padding: var(--space-2);
