@@ -70,15 +70,6 @@
           >
             <span>{{ index + 1 }}</span>
             <strong>{{ moduleLesson.title }}</strong>
-            <small>
-              {{
-                moduleLesson.id === route.params.lessonId
-                  ? "Current"
-                  : isLessonUnlocked(moduleData, moduleLesson.id, progress, roadmapModules)
-                    ? "Open"
-                    : "Locked"
-              }}
-            </small>
           </RouterLink>
           <RouterLink
             v-if="moduleData.boss_problem"
@@ -89,12 +80,11 @@
           >
             <span>B</span>
             <strong>{{ moduleData.boss_problem.title }}</strong>
-            <small>Boss</small>
           </RouterLink>
         </div>
       </section>
 
-      <div class="workspace-columns lesson-columns">
+      <div class="workspace-columns">
         <aside class="workspace-panel left-panel">
           <section class="panel-section">
             <p class="page-eyebrow">Lesson</p>
