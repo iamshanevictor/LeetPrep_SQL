@@ -20,7 +20,11 @@
           </div>
         </div>
       </div>
-      <div v-if="showAutocomplete" class="autocomplete-menu">
+      <div 
+        v-if="showAutocomplete" 
+        class="autocomplete-menu"
+        :style="{ top: menuTop + 'px', left: menuLeft + 'px' }"
+      >
         <div
           v-for="(keyword, idx) in filteredKeywords"
           :key="keyword"
@@ -65,6 +69,8 @@ const showAutocomplete = ref(false);
 const selectedKeywordIdx = ref(0);
 const highlightKey = ref(0);
 const currentWord = ref("");
+const menuTop = ref(0);
+const menuLeft = ref(0);
 
 const SQL_KEYWORDS = [
   // Clauses
@@ -92,7 +98,7 @@ const filteredKeywords = computed(() => {
 });
 
 const highlightedLines = computed(() => {
-  return (modelValue || "").split("\n").map(line => highlightLine(line));
+  return (props.modelValue || "").split("\n").map(line => highlightLine(line));
 });
 
 function highlightLine(line) {
@@ -150,6 +156,21 @@ function handleKeydown(event) {
   }
 }
 
+function calculateMenuPosition(textarea, wordStart, cursorPos) {
+  const textBeforeCursor = textarea.value.substring(0, cursorPos);
+  const lines = textBeforeCursor.split('\n');
+  const currentLine = lines[lines.length - 1];
+  const lineIndex = lines.length - 1;
+  
+  // Calculate position based on font metrics
+  const charWidth = 7.8; // approximate width of monospace char at 13px
+  const lineHeight = 19.5; // 1.5em * 13px font-size
+  const padding = 8; // textarea padding
+  
+  menuLeft.value = Math.max(padding, Math.min(currentLine.length * charWidth + padding, textarea.clientWidth - 160));
+  menuTop.value = (lineIndex + 1) * lineHeight + padding + 4;
+}
+
 function updateAutocomplete(event) {
   const textarea = event.target;
   const text = textarea.value;
@@ -164,10 +185,11 @@ function updateAutocomplete(event) {
 
   currentWord.value = text.substring(start, cursorPos);
 
-  // Trigger autocomplete on Shift+Space or when typing a letter
-  if (currentWord.value.length > 0 || (event.originalEvent?.shiftKey && event.key === " ")) {
+  // Trigger autocomplete only if there are matching keywords
+  if (currentWord.value.length > 0 && filteredKeywords.value.length > 0) {
     showAutocomplete.value = true;
     selectedKeywordIdx.value = 0;
+    calculateMenuPosition(textarea, start, cursorPos);
   } else {
     showAutocomplete.value = false;
   }
@@ -264,7 +286,7 @@ textarea {
   border: none;
   background: transparent;
   color: transparent;
-  caret-color: var(--color-code-text);
+  caret-color: #0066cc;
   font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
   font-size: 13px;
   line-height: 1.5;
@@ -311,31 +333,28 @@ textarea:disabled {
 }
 
 .keyword {
-  color: #569cd6;
-  font-weight: 600;
-}
+    color: #0066cc;
+    font-weight: 600;
+  }
 
-.number {
-  color: #b5cea8;
-}
+  .number {
+    color: #cc6600;
+  }
 
-.symbol {
-  color: #d4d4d4;
-}
+  .symbol {
+    color: #333333;
+  }
 
 .autocomplete-menu {
   position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
   background: var(--color-code-bg);
   border: 1px solid var(--color-code-border);
-  border-top: none;
-  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  border-radius: var(--radius-sm);
   max-height: 200px;
   overflow-y: auto;
   z-index: 10;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 150px;
 }
 
 .autocomplete-item {
