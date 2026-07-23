@@ -37,15 +37,6 @@ Learning content is authored as JSON in `backend/learning_content/` and loaded a
 - Theme persistence in `localStorage`
 - Frontend caching for roadmap/module/lesson/boss fetches
 
-## Screenshots
-
-TODO: Add screenshots or GIFs of:
-
-- Dashboard
-- Roadmap overview
-- Lesson workspace
-- Boss-problem workspace
-
 ## Tech Stack
 
 | Area | Tools |
