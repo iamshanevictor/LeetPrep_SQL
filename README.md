@@ -1,88 +1,121 @@
 # LeetPrep-SQL
 
-LeetPrep-SQL is a Flask and Vue-based SQL practice platform designed to help learners master recurring SQL interview patterns before solving LeetCode-style SQL problems.
+LeetPrep-SQL is a Flask + Vue 3 SQL practice platform for building the query patterns used in LeetCode-style database interviews. It combines a JSON-authored learning roadmap, in-browser progress tracking, and DuckDB-backed query execution for lesson and boss-problem practice.
 
-The app now includes a JSON-backed roadmap learning system. The roadmap teaches SQL through a tutorial -> guided example -> practice -> boss problem flow, so advanced problems are reached gradually instead of dropped in all at once.
+## Summary
 
-## Current Status
+- Guided SQL learning path from core patterns to advanced interview problems
+- Lesson flow: tutorial -> guided example -> practice -> boss problem
+- Browser-local progress storage, no login required
+- Safe SQL execution with read-only query validation
 
-This version includes:
+## Overview
 
-- Flask app factory and REST API structure
-- Vue 3 + Vite single-page app
-- Roadmap overview with 10 target SQL modules
-- Complete roadmap content for Modules 1-10
-- Cumulative module metadata showing which earlier modules each module builds on
-- Browser-local progress saving with no account required
-- DuckDB-backed in-memory query execution for learning content
-- Basic grading by comparing user query output with expected query output
-- SQL safety checks that only allow `SELECT` and `WITH` learner queries
+The app is split into two parts:
 
-Each module now includes tutorial lessons, guided examples, practice prompts, and a boss problem backed by DuckDB seed data.
+- `backend/` exposes REST endpoints for roadmap content, lesson execution, grading, health checks, and placeholder standalone problems
+- `frontend/` provides the Vue single-page app for the dashboard, roadmap, module pages, lesson workspace, and boss-problem workspace
+
+Learning content is authored as JSON in `backend/learning_content/` and loaded at runtime. Queries run against temporary in-memory DuckDB databases seeded from the lesson or boss-problem definitions.
+
+## Features
+
+- 10-module SQL roadmap with ordered progression
+- Module gating based on prior completion
+- Lesson workspaces with:
+  - tutorial content
+  - guided example
+  - practice prompt
+  - schema viewer
+  - sample data viewer
+  - expected output preview
+  - hints
+- Boss problems unlocked after all lessons in a module are complete
+- Query execution and submission grading
+- SQL safety checks that allow only read-only learner queries
+- Local progress persistence in `localStorage`
+- Theme persistence in `localStorage`
+- Frontend caching for roadmap/module/lesson/boss fetches
+
+## Screenshots
+
+TODO: Add screenshots or GIFs of:
+
+- Dashboard
+- Roadmap overview
+- Lesson workspace
+- Boss-problem workspace
 
 ## Tech Stack
 
-- Backend: Flask
-- Frontend: Vue 3
-- Frontend tooling: Vite
-- API style: REST API
-- SQL execution for lessons: DuckDB
-- Future app database: SQLite
-- Future ORM: SQLAlchemy
-- Workflow: Python-first, no Docker
+| Area | Tools |
+| --- | --- |
+| Backend API | Flask, Flask-CORS |
+| Backend data layer | Flask-SQLAlchemy, SQLite default app DB |
+| Query engine | DuckDB |
+| SQL validation | sqlglot |
+| Data handling | pandas |
+| Frontend | Vue 3, Vue Router |
+| Frontend tooling | Vite |
+| Testing | pytest, Vitest, Playwright |
+| Deployment helpers | Gunicorn, Vercel Speed Insights |
 
-## Learning Flow
+## Architecture / Data Flow
 
-Each completed roadmap module is designed to follow this path:
+```mermaid
+flowchart LR
+  A[Vue SPA] --> B[Flask REST API]
+  B --> C[JSON roadmap + lesson content]
+  B --> D[DuckDB in-memory execution]
+  D --> E[Seeded schema/data]
+  D --> F[User query result]
+  F --> G[Grader compares to expected output]
+  A --> H[localStorage progress + theme]
+```
 
-1. Concept tutorial
-2. Small guided example
-3. Slightly harder practice problem
-4. Pattern explanation and mental model
-5. Final boss problem
+Request flow:
 
-The roadmap currently covers:
+1. The frontend loads roadmap or module data from `/api/roadmap` and `/api/modules/...`.
+2. Lesson and boss pages fetch authored JSON content from the backend.
+3. Learner SQL is validated for safety before execution.
+4. Queries run in an isolated in-memory DuckDB connection seeded with the lesson schema and data.
+5. Grading compares user output against the expected result.
+6. Completion state is stored locally in the browser.
 
-- `GROUP BY`
-- `AVG`
-- `INNER JOIN`
-- `CASE WHEN`
-- `CTE`
-- `MIN` and `MAX`
-- Subquery exclusion patterns
-- Consecutive row grouping
-- `LEFT JOIN` and zero-count buckets
-- Date interval grouping
-- Conditional aggregation and pivot-style reports
-- `DENSE_RANK`
-- Moving averages
-- Pair generation and distance calculations
-- `LAG` and `LEAD`
-
-## Folder Structure
+## Project Structure
 
 ```text
 backend/
   app/
-    api/               Flask route blueprints
-    services/          Loading, DuckDB execution, and grading services
-    models/            Future SQLAlchemy models
-    utils/             SQL safety helpers
-  learning_content/    Roadmap and lesson JSON files
-  problems/            Future standalone SQL problem JSON files
-  scripts/             Future maintenance scripts
-  tests/               Backend tests
+    api/         REST blueprints for health, learning, problems, attempts
+    services/    JSON loaders, DuckDB runner, grading, problem generation
+    models/      Future SQLAlchemy models
+    utils/       SQL safety helpers
+  learning_content/
+    roadmap.json
+    modules/     Lesson and boss-problem JSON content
+  scripts/       Validation and seed/helper scripts
+  tests/         Backend test suite
 frontend/
   src/
-    api/               Frontend API client helpers
-    components/        Reusable Vue components
-    pages/             Route-level Vue pages
-    router/            Vue Router setup
+    api/         API client wrappers
+    components/  UI, learning, roadmap, and layout components
+    composables/ Workspace logic
+    pages/       Route-level pages
+    router/      Vue Router setup
+    services/    localStorage helpers for progress and theme
+    assets/      Global styles
 ```
 
-## Run the Backend
+## Installation
 
-From the repository root:
+### Prerequisites
+
+- Python 3.11+
+- Node.js 22+
+- npm
+
+### Backend
 
 ```powershell
 cd backend
@@ -92,15 +125,9 @@ pip install -r requirements.txt
 python run.py
 ```
 
-The Flask API runs at:
+The API runs at `http://localhost:5000`.
 
-```text
-http://localhost:5000
-```
-
-## Run the Frontend
-
-In a second terminal:
+### Frontend
 
 ```powershell
 cd frontend
@@ -108,194 +135,111 @@ npm install
 npm run dev
 ```
 
-The Vue app runs at:
+The app runs at `http://localhost:5173`.
 
-```text
-http://localhost:5173
-```
+## Configuration
 
-Copy `frontend/.env.example` to `frontend/.env` if you want to customize the API base URL.
+### Backend environment variables
 
-For Vercel, set this environment variable to your Render backend API URL:
+Copy `backend/.env.example` to `backend/.env` and adjust as needed.
 
-```text
-VITE_API_BASE_URL=https://your-render-service.onrender.com/api
-```
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `SECRET_KEY` | Flask secret key | `dev-secret-key-change-me` |
+| `DATABASE_URL` | App database connection string | SQLite file in `backend/instance/leetprep_sql.db` |
+| `PROBLEMS_DIR` | Location for standalone problem JSON | `backend/problems` |
+| `CORS_ORIGINS` | Allowed frontend origins | `http://localhost:5173,http://localhost:5174,https://leetprepsql.vercel.app` |
+| `FRONTEND_ORIGIN` | Alternate CORS origin override | same as above when set |
+| `SQL_MAX_QUERY_LENGTH` | Maximum learner query length | `5000` |
+| `SQL_MAX_RESULT_ROWS` | Maximum returned rows | `200` |
+| `SQL_QUERY_TIMEOUT_SECONDS` | Execution timeout | `5` |
+| `DUCKDB_MEMORY_LIMIT` | DuckDB memory cap | `128MB` |
 
-## Anonymous Progress Saving
+### Frontend environment variables
 
-LeetPrep-SQL saves learner progress in the browser with `localStorage`. This avoids accounts and registration while still remembering progress on the same browser and device.
+TODO: The repo references `frontend/.env.example` in the README and code comments, but no frontend env example file is present in the repository snapshot.
 
-The frontend currently stores:
+The frontend API base URL is configured through `VITE_API_BASE_URL`.
 
-- Completed lessons
-- Completed boss problems
-- SQL draft queries per lesson or boss problem
-- Last opened learning page
-- Local practice streak dates
+## Usage
 
-This data is not synced across devices. It will be lost if the learner clears browser site data, switches browsers, or uses private browsing.
+### Main routes
 
-When deployed, the recommended setup is:
+- `/` dashboard
+- `/roadmap` roadmap overview
+- `/roadmap/:moduleId` module page
+- `/roadmap/:moduleId/lessons/:lessonId` lesson workspace
+- `/roadmap/:moduleId/boss` boss-problem workspace
+- `/problems` standalone problem list
+- `/problems/:id` standalone problem detail
 
-```text
-Frontend: Vercel
-Backend API: Render
-Progress: Browser localStorage
-```
+### Key API endpoints
 
-## Open the Roadmap
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| GET | `/api/health` | Health check |
+| GET | `/api/roadmap` | Full roadmap metadata |
+| GET | `/api/modules` | Module list |
+| GET | `/api/modules/<module_id>` | Module detail with lesson summaries |
+| GET | `/api/modules/<module_id>/lessons/<lesson_id>` | Lesson detail |
+| POST | `/api/modules/<module_id>/lessons/<lesson_id>/run` | Run lesson SQL |
+| POST | `/api/modules/<module_id>/lessons/<lesson_id>/submit` | Grade lesson SQL |
+| GET | `/api/modules/<module_id>/boss` | Boss-problem detail |
+| POST | `/api/modules/<module_id>/boss/run` | Run boss SQL |
+| POST | `/api/modules/<module_id>/boss/submit` | Grade boss SQL |
+| GET | `/api/problems` | Standalone problem list placeholder |
+| GET | `/api/problems/<problem_id>` | Standalone problem detail placeholder |
+| POST | `/api/problems/<problem_id>/run` | Standalone problem runner placeholder |
+| POST | `/api/problems/<problem_id>/submit` | Standalone problem grader placeholder |
+| GET | `/api/attempts` | Attempt list placeholder |
 
-With both servers running, open:
+### Local workflow
 
-```text
-http://localhost:5173/roadmap
-```
+1. Start the backend.
+2. Start the frontend.
+3. Open `http://localhost:5173/roadmap`.
+4. Complete lessons in order to unlock later lessons and boss problems.
+5. Use Run to inspect results before submitting.
 
-Module 1 is available at:
+### Validation and tests
 
-```text
-http://localhost:5173/roadmap/module_01_salary_comparison
-```
-
-## API Endpoints
-
-Core endpoints:
-
-```text
-GET  /api/health
-GET  /api/problems
-GET  /api/problems/<problem_id>
-POST /api/problems/<problem_id>/run
-POST /api/problems/<problem_id>/submit
-GET  /api/attempts
-```
-
-Roadmap endpoints:
-
-```text
-GET  /api/roadmap
-GET  /api/modules
-GET  /api/modules/<module_id>
-GET  /api/modules/<module_id>/lessons/<lesson_id>
-POST /api/modules/<module_id>/lessons/<lesson_id>/run
-POST /api/modules/<module_id>/lessons/<lesson_id>/submit
-GET  /api/modules/<module_id>/boss
-POST /api/modules/<module_id>/boss/run
-POST /api/modules/<module_id>/boss/submit
-```
-
-## Test Module 1 Lesson 1
-
-Run this after starting the backend:
-
-```powershell
-Invoke-RestMethod `
-  -Method Post `
-  -Uri http://localhost:5000/api/modules/module_01_salary_comparison/lessons/lesson_01_group_by_avg/submit `
-  -ContentType "application/json" `
-  -Body '{"query":"SELECT department_id, SUM(salary) AS total_salary FROM employees GROUP BY department_id"}'
-```
-
-## Test the Module 1 Boss Problem
-
-```powershell
-Invoke-RestMethod `
-  -Method Post `
-  -Uri http://localhost:5000/api/modules/module_01_salary_comparison/boss/submit `
-  -ContentType "application/json" `
-  -Body '{"query":"WITH department_averages AS (SELECT d.department_name, AVG(e.salary) AS department_avg_salary FROM employees e INNER JOIN departments d ON e.department_id = d.department_id GROUP BY d.department_name), company_average AS (SELECT AVG(salary) AS company_avg_salary FROM employees) SELECT da.department_name, da.department_avg_salary, ca.company_avg_salary, CASE WHEN da.department_avg_salary > ca.company_avg_salary THEN ''higher'' WHEN da.department_avg_salary < ca.company_avg_salary THEN ''lower'' ELSE ''same'' END AS comparison_result FROM department_averages da CROSS JOIN company_average ca"}'
-```
-
-## Run Backend Tests
-
-From the `backend` directory:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest
-```
-
-## Validate Learning Content
-
-Before adding or editing lesson JSON files, run:
+Backend:
 
 ```powershell
 cd backend
+.\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\python.exe scripts\validate_learning_content.py
 ```
 
-This checks roadmap metadata, lesson counts, required fields, schema/seed row
-alignment, boss prerequisites, and expected-query output columns.
-
-## Frontend Quality Checks
-
-From the `frontend` directory:
+Frontend:
 
 ```powershell
+cd frontend
 npm run lint
 npm run test
 npm run build
-```
-
-Frontend E2E tests use Playwright:
-
-```powershell
-npx playwright install chromium
 npm run test:e2e
 ```
 
-The GitHub Actions CI workflow runs backend tests, content validation, frontend
-linting, frontend unit tests, build verification, and Playwright E2E tests.
+### Content authoring
 
-## Where Learning Content Lives
+- Roadmap metadata: `backend/learning_content/roadmap.json`
+- Module lessons and boss problems: `backend/learning_content/modules/`
 
-Roadmap metadata:
+TODO: The repo includes validation scripts for learning content, but standalone problem content under `backend/problems/` is still not authored.
 
-```text
-backend/learning_content/roadmap.json
-```
+## Future Improvements
 
-Module lesson and boss content:
+- Persist attempts and progress in the backend database
+- Add authentication and per-user accounts
+- Author standalone practice problems under `backend/problems/`
+- Expand the roadmap with more beginner-friendly onboarding
+- Add richer SQL editor support
+- Add daily streak tracking with backend persistence
+- Serve the frontend from the Flask app for a single deployment target
 
-```text
-backend/learning_content/modules/
-```
+## License
 
-Each module folder contains lesson JSON files and a `boss_problem.json` file. For example:
+MIT
 
-```text
-backend/learning_content/modules/module_02_quiet_students/
-```
-
-When revising or adding content, keep `lessons_count` and `builds_on_modules` in `backend/learning_content/roadmap.json` in sync with the authored lesson files.
-
-## What Is Intentionally Not Implemented Yet
-
-- Standalone practice problems under `backend/problems/`
-- User progress persistence
-- Daily practice tracking
-- Authentication or login
-- Database migrations
-- CodeMirror or advanced SQL editor integration
-- Docker
-- Production static serving from Flask
-
-## Files to Study First
-
-- `backend/app/services/learning_loader.py` for JSON roadmap loading
-- `backend/app/services/sql_runner.py` for DuckDB execution
-- `backend/app/services/grader.py` for result comparison
-- `backend/app/api/learning.py` for thin roadmap API routes
-- `backend/learning_content/roadmap.json` for module metadata
-- `frontend/src/pages/RoadmapPage.vue` for the roadmap UI
-- `frontend/src/pages/LessonPage.vue` for the lesson workbench
-- `frontend/src/api/roadmap.js` for frontend/backend learning API calls
-- `frontend/src/services/progressStorage.js` for account-free browser progress
-
-## Next Planned Features
-
-- Add richer sample explanations and alternative solutions for each module
-- Persist lesson and boss problem attempts in SQLite
-- Track daily practice and streaks
-- Add standalone problem loading under `backend/problems/`
-- Add richer SQL editor support later
+See [`LICENSE`](./LICENSE) for the full text.
