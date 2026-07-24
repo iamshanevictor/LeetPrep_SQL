@@ -148,8 +148,6 @@ Copy `backend/.env.example` to `backend/.env` and adjust as needed.
 
 ### Frontend environment variables
 
-TODO: The repo references `frontend/.env.example` in the README and code comments, but no frontend env example file is present in the repository snapshot.
-
 The frontend API base URL is configured through `VITE_API_BASE_URL`.
 
 ## Usage
